@@ -6,7 +6,9 @@ type props = {
 
 const layout: FC<props> = ({ children }) => {
   return (
-    <div className="h-screen flex items-center justify-center">{children}</div>
+    <div className="h-[calc(100vh-14rem)] flex items-center justify-center">
+      {children}
+    </div>
   );
 };
 
