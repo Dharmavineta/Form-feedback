@@ -12,13 +12,18 @@ import {
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
+import { FC } from "react";
 
-const NewProjectDialog = () => {
+type props = {
+  size?: "sm" | "lg";
+};
+
+const NewProjectDialog: FC<props> = ({ size }) => {
   return (
     <div>
       <Dialog>
         <DialogTrigger asChild>
-          <Button size={"sm"} className="flex gap-x-2">
+          <Button size={size} className="flex gap-x-2">
             <Plus className="w-4 h-4" />
             Create New Project
           </Button>

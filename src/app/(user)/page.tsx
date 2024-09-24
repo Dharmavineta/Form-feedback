@@ -4,11 +4,7 @@ import { Label } from "@/components/ui/label";
 import React from "react";
 
 const Home = () => {
-  return (
-    <div>
-      <NewProject />
-    </div>
-  );
+  return <div>This is the Home Page</div>;
 };
 
 export default Home;

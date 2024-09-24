@@ -1,7 +1,21 @@
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 const Dashboard = () => {
-  return <div>Dashboard</div>;
+  return (
+    <div className="">
+      <div className="flex justify-end">
+        <Link href={"/form"}>
+          <Button className="flex gap-x-2" size={"sm"}>
+            <Plus className="w-4 h-4" />
+            Create New Form
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
 };
 
 export default Dashboard;
