@@ -1,7 +1,7 @@
 import React from "react";
 
-const MainFormLayout = () => {
+const MainForm = () => {
   return <div>MainFormLayout</div>;
 };
 
-export default MainFormLayout;
+export default MainForm;

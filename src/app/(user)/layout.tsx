@@ -7,11 +7,9 @@ type props = {
 
 const layout: FC<props> = ({ children }) => {
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <PageHeader />
-      <div className=" container px-5 2xl:px-0 mx-auto w-full max-w-screen-2xl py-5">
-        {children}
-      </div>
+      <div className="flex-1 w-full py-5">{children}</div>
     </div>
   );
 };
