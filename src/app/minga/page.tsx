@@ -28,14 +28,14 @@ import { v4 as uuidv4 } from "uuid";
 
 // Update the QUESTION_TYPES array
 const QUESTION_TYPES = [
-  "Input",
-  "Radio",
-  "Checkbox",
-  "Select",
-  "Date",
-  "Time",
+  { value: "text", label: "Input" },
+  { value: "radio", label: "Radio" },
+  { value: "checkbox", label: "Checkbox" },
+  { value: "select", label: "Select" },
+  { value: "date", label: "Date" },
+  { value: "time", label: "Time" },
 ] as const;
-type QuestionType = (typeof QUESTION_TYPES)[number];
+type QuestionType = (typeof QUESTION_TYPES)[number]["value"];
 
 interface Option {
   id: string;
@@ -67,7 +67,7 @@ const FormBuilder: React.FC = () => {
       {
         id: uuidv4(),
         questionText: "",
-        questionType: "Input",
+        questionType: "text",
         options: [],
         required: false,
       },
@@ -78,7 +78,7 @@ const FormBuilder: React.FC = () => {
     const newQuestion = {
       id: uuidv4(),
       questionText: questionText,
-      questionType: "Input" as QuestionType,
+      questionType: "text" as QuestionType,
       options: [],
       required: false,
     };
@@ -228,7 +228,7 @@ const FormBuilder: React.FC = () => {
                               <TooltipTrigger>
                                 <div
                                   {...provided.dragHandleProps}
-                                  className="mr-4 absolute -left-8 top-1/2 -translate-y-1/2"
+                                  className="mr-4 md:absolute md:-left-8 md:top-1/2 md:-translate-y-1/2"
                                 >
                                   <LucideGrip className="text-sky-400 w-4 h-4 md:w-5 md:h-5" />
                                 </div>
@@ -280,8 +280,8 @@ const FormBuilder: React.FC = () => {
                             </SelectTrigger>
                             <SelectContent>
                               {QUESTION_TYPES.map((type) => (
-                                <SelectItem key={type} value={type}>
-                                  {type}
+                                <SelectItem key={type.value} value={type.value}>
+                                  {type.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -306,9 +306,9 @@ const FormBuilder: React.FC = () => {
                       </div>
 
                       {/* Options section */}
-                      {(question.questionType === "Radio" ||
-                        question.questionType === "Checkbox" ||
-                        question.questionType === "Select") && (
+                      {(question.questionType === "radio" ||
+                        question.questionType === "checkbox" ||
+                        question.questionType === "select") && (
                         <div className="ml-8 w-full md:w-[400px] lg:w-[500px] mt-4">
                           <h4 className="font-semibold text-muted-foreground mb-2">
                             Options:
