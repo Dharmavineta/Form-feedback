@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import { DataTable } from "./_components/data-table/data-table";
 
 const Dashboard = () => {
   return (
@@ -13,6 +14,10 @@ const Dashboard = () => {
             Create New Form
           </Button>
         </Link>
+      </div>
+      <div>
+        <h1>Dashboard</h1>
+        {/* <DataTable/> */}
       </div>
     </div>
   );
