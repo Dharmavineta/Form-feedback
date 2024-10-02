@@ -8,7 +8,7 @@ const Dashboard = () => {
   return (
     <div className="">
       <div className="flex justify-end">
-        <Link href={"/form"}>
+        <Link href={"/forms/create"}>
           <Button className="flex gap-x-2" size={"sm"}>
             <Plus className="w-4 h-4" />
             Create New Form

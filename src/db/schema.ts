@@ -11,6 +11,16 @@ import {
 import { relations } from "drizzle-orm";
 import { pgEnum } from "drizzle-orm/pg-core";
 
+// Move this enum definition to the top of the file
+export const questionTypeEnum = pgEnum("question_type", [
+  "text",
+  "radio",
+  "checkbox",
+  "select",
+  "date",
+  "time",
+]);
+
 // Users table (for form creators)
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -50,16 +60,6 @@ export const formsRelations = relations(forms, ({ one, many }) => ({
   formViews: many(formViews),
   dailyStats: many(dailyStats),
 }));
-
-// Add this enum definition
-export const questionTypeEnum = pgEnum("question_type", [
-  "text",
-  "radio",
-  "checkbox",
-  "select",
-  "date",
-  "time",
-]);
 
 // Questions table
 export const questions = pgTable("questions", {

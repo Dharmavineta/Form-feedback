@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DragDropContext,
   Droppable,
@@ -45,11 +45,11 @@ interface Question {
 const FormBuilder: React.FC = () => {
   const [formQuestions, setFormQuestions] = useState<Question[]>([]);
   const [formId, setFormId] = useState<number | null>(null);
-  const formQuestionRef = useRef<HTMLInputElement>(null);
-  const formDescriptionRef = useRef<HTMLInputElement>(null);
-  const newOptionInputRefs = useRef<Record<string, HTMLInputElement | null>>(
-    {}
-  );
+  const [formName, setFormName] = useState<string>("");
+  const [formDescription, setFormDescription] = useState<string>("");
+  const [newOptionInputs, setNewOptionInputs] = useState<
+    Record<string, string>
+  >({});
 
   useEffect(() => {
     // TODO: Fetch formId from URL or props
@@ -123,6 +123,7 @@ const FormBuilder: React.FC = () => {
           : q
       )
     );
+    setNewOptionInputs({ ...newOptionInputs, [questionId]: "" });
   };
 
   const removeOption = (questionId: string, optionId: string) => {
@@ -168,22 +169,44 @@ const FormBuilder: React.FC = () => {
     setFormQuestions(formQuestions.filter((q) => q.id !== id));
   };
 
+  const handleSaveForm = () => {
+    const formData = {
+      formId,
+      formName,
+      formDescription,
+      questions: formQuestions.map((q) => ({
+        id: q.id,
+        questionText: q.questionText,
+        questionType: q.questionType,
+        required: q.required,
+        options: q.options.map((o) => ({
+          id: o.id,
+          text: o.text,
+        })),
+      })),
+    };
+
+    console.log("Form data to be sent to the server:", formData);
+  };
+
   return (
     <div className=" px-10 md:px-10 lg:px-20 mx-auto min-h-screen">
       {/* New Question Widget */}
       <div className="bg-white w-full rounded-lg pt-8 mb-14 md:w-[90%]">
         <div className="w-full">
           <Input
-            ref={formQuestionRef}
             type="text"
             placeholder="Form Name"
+            value={formName}
+            onChange={(e) => setFormName(e.target.value)}
             className="w-full text-4xl font-semibold border-none focus:ring-0 focus:outline-none placeholder:text-gray-300 mb-2"
           />
           <div className="h-px bg-gray-200 w-full mb-2"></div>
           <Input
-            ref={formDescriptionRef}
             type="text"
             placeholder="Form Description"
+            value={formDescription}
+            onChange={(e) => setFormDescription(e.target.value)}
             className="w-full text-base text-gray-600 border-none focus:ring-0 focus:outline-none placeholder:text-gray-300"
           />
         </div>
@@ -397,13 +420,15 @@ const FormBuilder: React.FC = () => {
                           </DragDropContext>
                           <div className="flex items-center mt-2 ml-6">
                             <Input
-                              ref={(el) => {
-                                if (el) {
-                                  newOptionInputRefs.current[question.id] = el;
-                                }
-                              }}
                               type="text"
                               placeholder="Add option"
+                              value={newOptionInputs[question.id] || ""}
+                              onChange={(e) =>
+                                setNewOptionInputs({
+                                  ...newOptionInputs,
+                                  [question.id]: e.target.value,
+                                })
+                              }
                               onKeyDown={(
                                 e: React.KeyboardEvent<HTMLInputElement>
                               ) => {
@@ -415,7 +440,6 @@ const FormBuilder: React.FC = () => {
                                     question.id,
                                     e.currentTarget.value.trim()
                                   );
-                                  e.currentTarget.value = "";
                                 }
                               }}
                               className="mr-2"
@@ -427,14 +451,16 @@ const FormBuilder: React.FC = () => {
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => {
-                                      const input =
-                                        newOptionInputRefs.current[question.id];
-                                      if (input && input.value.trim() !== "") {
+                                      const inputValue =
+                                        newOptionInputs[question.id];
+                                      if (
+                                        inputValue &&
+                                        inputValue.trim() !== ""
+                                      ) {
                                         addOption(
                                           question.id,
-                                          input.value.trim()
+                                          inputValue.trim()
                                         );
-                                        input.value = "";
                                       } else {
                                         addOption(question.id);
                                       }
@@ -484,7 +510,9 @@ const FormBuilder: React.FC = () => {
         </Droppable>
       </DragDropContext>
       <div className="flex justify-end mt-4">
-        <Button size="sm">Save Form</Button>
+        <Button size="sm" onClick={handleSaveForm}>
+          Save Form
+        </Button>
       </div>
     </div>
   );
