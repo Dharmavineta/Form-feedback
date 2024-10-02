@@ -10,7 +10,7 @@ const layout: FC<props> = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen">
       <PageHeader />
-      <div className="flex-1 w-full py-5">{children}</div>
+      <div className="flex-1 w-full ">{children}</div>
     </div>
   );
 };
