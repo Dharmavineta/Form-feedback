@@ -183,7 +183,7 @@ const FormBuilder: React.FC = () => {
     toast.promise(promise, {
       loading: "Creating form...",
       success: (result) => {
-        router.push("/dashboard"); // Redirect to forms list page
+        // router.push("/dashboard"); // Redirect to forms list page
         return result.message;
       },
       error: (error) => {

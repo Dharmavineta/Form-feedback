@@ -38,8 +38,8 @@ export const usersRelations = relations(users, ({ many }) => ({
 // Forms table
 export const forms = pgTable("forms", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .references(() => users.id)
+  userId: varchar("user_id", { length: 255 })
+    .references(() => users.clerkId)
     .notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
