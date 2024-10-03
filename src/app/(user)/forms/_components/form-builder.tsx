@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, FC } from "react";
 import {
   DragDropContext,
   Droppable,
@@ -27,26 +27,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { v4 as uuidv4 } from "uuid";
-import { questionTypeEnum } from "@/db/schema";
+import { questionTypeEnum, QuestionOption } from "@/db/schema";
 import { createForm } from "@/app/actions";
 import { useRouter } from "next/navigation";
 
 type QuestionType = (typeof questionTypeEnum.enumValues)[number];
 
-interface Option {
-  id: string;
-  text: string;
-}
-
 interface Question {
   id: string;
   questionText: string;
   questionType: QuestionType;
-  options: Option[];
+  options: QuestionOption[];
   required: boolean;
 }
 
-const FormBuilder: React.FC = () => {
+const FormBuilder: FC = () => {
   const [formQuestions, setFormQuestions] = useState<Question[]>([]);
   const [formId, setFormId] = useState<number | null>(null);
   const [formName, setFormName] = useState<string>("");
@@ -113,7 +108,10 @@ const FormBuilder: React.FC = () => {
         q.id === questionId
           ? {
               ...q,
-              options: [...q.options, { id: uuidv4(), text: optionText }],
+              options: [
+                ...q.options,
+                { id: uuidv4(), text: optionText, order: q.options.length },
+              ],
             }
           : q
       )
@@ -172,9 +170,7 @@ const FormBuilder: React.FC = () => {
         questionText: q.questionText,
         questionType: q.questionType,
         required: q.required,
-        options: q.options.map((o) => ({
-          optionText: o.text,
-        })),
+        options: q.options,
       })),
     };
 
@@ -187,9 +183,7 @@ const FormBuilder: React.FC = () => {
         return result.message;
       },
       error: (error) => {
-        // You can log the error here if you want
         console.error("Form creation error:", error);
-        // You can return a more specific error message if you want
         return error.message || "Failed to create form";
       },
     });

@@ -23,7 +23,7 @@ export const questionTypeEnum = pgEnum("question_type", [
 ]);
 
 // Define a type for the option structure
-type QuestionOption = {
+export type QuestionOption = {
   id: string;
   text: string;
   order: number;

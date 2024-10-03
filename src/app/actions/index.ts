@@ -4,20 +4,19 @@ import { db } from "@/db";
 import {
   forms,
   questions,
-  questionOptions,
   NewFormType,
   NewQuestionType,
-  NewQuestionOptionType,
+  QuestionOption,
 } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-// This type extends NewFormType to include the nested questions and options
+// Update the FormInputType to match the schema
 type FormInputType = Omit<NewFormType, "userId"> & {
   questions: (Omit<NewQuestionType, "formId" | "order"> & {
-    options?: Omit<NewQuestionOptionType, "questionId" | "order">[];
+    options?: QuestionOption[];
   })[];
 };
 
@@ -44,23 +43,9 @@ export async function createForm(input: FormInputType) {
           ...q,
           formId: createdForm.id,
           order: i,
+          options: q.options || [],
         };
-        const [createdQuestion] = await tx
-          .insert(questions)
-          .values(newQuestion)
-          .returning();
-
-        // If the question has options, create them
-        if (q.options && q.options.length > 0) {
-          const newOptions: NewQuestionOptionType[] = q.options.map(
-            (option, index) => ({
-              ...option,
-              questionId: createdQuestion.id,
-              order: index,
-            })
-          );
-          await tx.insert(questionOptions).values(newOptions);
-        }
+        await tx.insert(questions).values(newQuestion);
       }
     });
 
