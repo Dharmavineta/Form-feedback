@@ -6,7 +6,7 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 
 import { Plus, Trash2, GripVertical, LucideGrip } from "lucide-react";
 import { Input } from "@/components/ui/input";

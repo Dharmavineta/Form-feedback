@@ -7,11 +7,12 @@ import {
   timestamp,
   text,
   date,
+  json,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { pgEnum } from "drizzle-orm/pg-core";
 
-// Move this enum definition to the top of the file
+// Question type enum
 export const questionTypeEnum = pgEnum("question_type", [
   "text",
   "radio",
@@ -20,6 +21,13 @@ export const questionTypeEnum = pgEnum("question_type", [
   "date",
   "time",
 ]);
+
+// Define a type for the option structure
+type QuestionOption = {
+  id: string;
+  text: string;
+  order: number;
+};
 
 // Users table (for form creators)
 export const users = pgTable("users", {
@@ -71,6 +79,7 @@ export const questions = pgTable("questions", {
   questionType: questionTypeEnum("question_type").notNull(),
   order: integer("order").notNull(),
   required: boolean("required").default(false),
+  options: json("options").$type<QuestionOption[]>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -80,30 +89,9 @@ export const questionsRelations = relations(questions, ({ one, many }) => ({
     fields: [questions.formId],
     references: [forms.id],
   }),
-  options: many(questionOptions),
   answers: many(answers),
   interactions: many(questionInteraction),
 }));
-
-// Question options table
-export const questionOptions = pgTable("question_options", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  questionId: uuid("question_id")
-    .references(() => questions.id)
-    .notNull(),
-  optionText: varchar("option_text", { length: 255 }).notNull(),
-  order: integer("order").notNull(),
-});
-
-export const questionOptionsRelations = relations(
-  questionOptions,
-  ({ one }) => ({
-    question: one(questions, {
-      fields: [questionOptions.questionId],
-      references: [questions.id],
-    }),
-  })
-);
 
 // Sessions table
 export const sessions = pgTable("sessions", {
@@ -167,7 +155,7 @@ export const answers = pgTable("answers", {
     .references(() => questions.id)
     .notNull(),
   answerText: text("answer_text"),
-  answerOption: uuid("answer_option").references(() => questionOptions.id),
+  answerOptionId: varchar("answer_option_id", { length: 255 }),
 });
 
 export const answersRelations = relations(answers, ({ one }) => ({
@@ -178,10 +166,6 @@ export const answersRelations = relations(answers, ({ one }) => ({
   question: one(questions, {
     fields: [answers.questionId],
     references: [questions.id],
-  }),
-  option: one(questionOptions, {
-    fields: [answers.answerOption],
-    references: [questionOptions.id],
   }),
 }));
 
@@ -267,9 +251,6 @@ export type NewFormType = typeof forms.$inferInsert;
 
 export type QuestionType = typeof questions.$inferSelect;
 export type NewQuestionType = typeof questions.$inferInsert;
-
-export type QuestionOptionType = typeof questionOptions.$inferSelect;
-export type NewQuestionOptionType = typeof questionOptions.$inferInsert;
 
 export type SessionType = typeof sessions.$inferSelect;
 export type NewSessionType = typeof sessions.$inferInsert;
