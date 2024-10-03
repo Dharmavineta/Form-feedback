@@ -173,7 +173,7 @@ const FormBuilder: React.FC = () => {
         questionType: q.questionType,
         required: q.required,
         options: q.options.map((o) => ({
-          optionText: o.text, // Changed from 'text' to 'optionText'
+          optionText: o.text,
         })),
       })),
     };
@@ -184,7 +184,7 @@ const FormBuilder: React.FC = () => {
       loading: "Creating form...",
       success: (result) => {
         router.push("/dashboard"); // Redirect to forms list page
-        return "Form created successfully!";
+        return result.message;
       },
       error: (error) => {
         // You can log the error here if you want
