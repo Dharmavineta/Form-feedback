@@ -53,6 +53,7 @@
     "dotenv": "^16.4.5",
     "embla-carousel-react": "^8.3.0",
     "framer-motion": "^11.5.6",
+    "git-filter-repo": "^0.0.30",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.441.0",
     "next": "14.2.12",
