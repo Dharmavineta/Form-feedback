@@ -5,9 +5,9 @@ import { createForm } from "@/app/actions";
 import { toast } from "sonner";
 import { DropResult } from "@hello-pangea/dnd";
 
-type QuestionType = (typeof questionTypeEnum.enumValues)[number];
+export type QuestionType = (typeof questionTypeEnum.enumValues)[number];
 
-interface Question {
+export interface Question {
   id: string;
   questionText: string;
   questionType: QuestionType;
@@ -52,16 +52,18 @@ export const useFormStore = create<FormState>((set, get) => ({
   newOptionInputs: {},
 
   addNewQuestion: (questionText = "") =>
-    set((state) => {
-      const newQuestion: Question = {
-        id: uuidv4(),
-        questionText,
-        questionType: "text",
-        options: [],
-        required: false,
-      };
-      return { formQuestions: [...state.formQuestions, newQuestion] };
-    }),
+    set((state) => ({
+      formQuestions: [
+        ...state.formQuestions,
+        {
+          id: uuidv4(),
+          questionText,
+          questionType: "text",
+          options: [],
+          required: false,
+        },
+      ],
+    })),
 
   updateQuestionText: (id, text) =>
     set((state) => ({
@@ -104,10 +106,7 @@ export const useFormStore = create<FormState>((set, get) => ({
     set((state) => ({
       formQuestions: state.formQuestions.map((q) =>
         q.id === questionId
-          ? {
-              ...q,
-              options: q.options.filter((option) => option.id !== optionId),
-            }
+          ? { ...q, options: q.options.filter((o) => o.id !== optionId) }
           : q
       ),
     })),
@@ -121,17 +120,22 @@ export const useFormStore = create<FormState>((set, get) => ({
     }),
 
   reorderOptions: (questionId, startIndex, endIndex) =>
-    set((state) => ({
-      formQuestions: state.formQuestions.map((q) => {
+    set((state) => {
+      const updatedQuestions = state.formQuestions.map((q) => {
         if (q.id === questionId) {
           const newOptions = Array.from(q.options);
           const [reorderedItem] = newOptions.splice(startIndex, 1);
           newOptions.splice(endIndex, 0, reorderedItem);
+          // Update the order property of each option
+          newOptions.forEach((option, index) => {
+            option.order = index;
+          });
           return { ...q, options: newOptions };
         }
         return q;
-      }),
-    })),
+      });
+      return { formQuestions: updatedQuestions };
+    }),
 
   deleteQuestion: (id) =>
     set((state) => ({
@@ -158,6 +162,7 @@ export const useFormStore = create<FormState>((set, get) => ({
           : q
       ),
     })),
+
   saveForm: async () => {
     const { formName, formDescription, formQuestions } = get();
     const formData = {
@@ -186,16 +191,43 @@ export const useFormStore = create<FormState>((set, get) => ({
       },
     });
   },
-  onDragEnd: (result: DropResult) => {
-    if (!result.destination) return;
 
+  onDragEnd: (result: DropResult) => {
     const { source, destination, type } = result;
 
+    if (!destination) return;
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
     if (type === "question") {
-      get().reorderQuestions(source.index, destination.index);
+      set((state) => {
+        const newQuestions = Array.from(state.formQuestions);
+        const [reorderedItem] = newQuestions.splice(source.index, 1);
+        newQuestions.splice(destination.index, 0, reorderedItem);
+        return { formQuestions: newQuestions };
+      });
     } else if (type === "option") {
-      const [questionId] = source.droppableId.split("-");
-      get().reorderOptions(questionId, source.index, destination.index);
+      const questionId = source.droppableId.split("-options")[0];
+      set((state) => {
+        const updatedQuestions = state.formQuestions.map((q) => {
+          if (q.id === questionId) {
+            const newOptions = Array.from(q.options);
+            const [reorderedItem] = newOptions.splice(source.index, 1);
+            newOptions.splice(destination.index, 0, reorderedItem);
+            newOptions.forEach((option, index) => {
+              option.order = index;
+            });
+            return { ...q, options: newOptions };
+          }
+          return q;
+        });
+        return { formQuestions: updatedQuestions };
+      });
     }
   },
 }));

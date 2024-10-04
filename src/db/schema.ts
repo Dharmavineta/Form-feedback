@@ -73,7 +73,7 @@ export const formsRelations = relations(forms, ({ one, many }) => ({
 export const questions = pgTable("questions", {
   id: uuid("id").defaultRandom().primaryKey(),
   formId: uuid("form_id")
-    .references(() => forms.id)
+    .references(() => forms.id, { onDelete: "cascade" })
     .notNull(),
   questionText: text("question_text").notNull(),
   questionType: questionTypeEnum("question_type").notNull(),
