@@ -13,8 +13,12 @@ import {
 import { useFormStore } from "@/app/store";
 import QuestionList from "./QuestionList";
 import { toast } from "sonner";
+import { FormType } from "@/db/schema";
+interface FormBuilderProps {
+  formData?: FormType | null;
+}
 
-const FormBuilder: FC = () => {
+const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
   const {
     formQuestions,
     formName,
@@ -58,9 +62,6 @@ const FormBuilder: FC = () => {
     }
 
     saveForm();
-    toast.success("Form Saved", {
-      description: "Your form has been saved successfully.",
-    });
   };
 
   return (
@@ -114,7 +115,7 @@ const FormBuilder: FC = () => {
 
       <div className="flex justify-end mt-4">
         <Button size="sm" onClick={handleSaveForm}>
-          Save Form
+          {formData ? "Save Changes" : "Create Form"}
         </Button>
       </div>
     </div>

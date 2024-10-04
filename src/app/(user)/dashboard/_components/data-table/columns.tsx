@@ -1,27 +1,57 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { Switch } from "@/components/ui/switch";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Payment = {
+import DataTableActions from "../data-table-actions";
+import UpdateToggle from "../update-toggle";
+
+export type FormData = {
   id: string;
-  amount: number;
-  status: "pending" | "processing" | "success" | "failed";
-  email: string;
+  title: string;
+  isPublished: boolean | null;
+  createdAt: Date | null;
+  publishedAt: Date | null;
+  updatedAt: Date | null;
+  userId: string;
 };
 
-export const columns: ColumnDef<Payment>[] = [
+export const columns: ColumnDef<FormData>[] = [
   {
-    accessorKey: "status",
+    accessorKey: "title",
+    header: "Title",
+  },
+
+  {
+    accessorKey: "isPublished",
     header: "Status",
+    cell: ({ row }) => {
+      const form = row.original;
+      return <UpdateToggle formId={form.id} publishedAt={form.publishedAt} />;
+    },
   },
   {
-    accessorKey: "email",
-    header: "Email",
+    accessorKey: "createdAt",
+    header: "Created At",
+    cell: ({ row }) => {
+      const date = row.getValue("createdAt") as Date | null;
+      return date ? date.toLocaleDateString() : "N/A";
+    },
   },
   {
-    accessorKey: "amount",
-    header: "Amount",
+    accessorKey: "publishedAt",
+    header: "Published At",
+    cell: ({ row }) => {
+      const date = row.getValue("publishedAt") as Date | null;
+      return date ? date.toLocaleDateString() : "Not published";
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      const form = row.original;
+      return <DataTableActions form={form} />;
+    },
   },
 ];

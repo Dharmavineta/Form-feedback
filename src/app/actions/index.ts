@@ -90,3 +90,100 @@ export async function createUserIfNotExists(
     throw new Error("Failed to create user");
   }
 }
+
+export async function getForms() {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    const userForms = await db
+      .select()
+      .from(forms)
+      .where(eq(forms.userId, userId));
+
+    return userForms;
+  } catch (error) {
+    console.error("Failed to fetch forms:", error);
+    throw new Error("Failed to fetch forms");
+  }
+}
+
+export async function deleteForm(formId: string) {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    // Delete the form (questions will be deleted automatically due to cascade)
+    await db.delete(forms).where(eq(forms.id, formId));
+
+    revalidatePath("/forms");
+    revalidatePath("/dashboard");
+
+    return { message: "Form deleted successfully" };
+  } catch (error) {
+    console.error("Failed to delete form:", error);
+    throw new Error("Failed to delete form");
+  }
+}
+
+type UpdateFormInput = Partial<Omit<NewFormType, "id" | "userId">> & {
+  id: string;
+};
+
+export async function updateForm(input: UpdateFormInput) {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const { id, ...updateData } = input;
+
+  try {
+    await db.update(forms).set(updateData).where(eq(forms.id, id));
+
+    revalidatePath("/forms");
+    revalidatePath("/dashboard");
+
+    return { message: "Form updated successfully" };
+  } catch (error) {
+    console.error("Failed to update form:", error);
+    throw new Error("Failed to update form");
+  }
+}
+
+export async function getFormById(formId: string) {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    const form = await db
+      .select()
+      .from(forms)
+      .where(eq(forms.id, formId))
+      .limit(1);
+
+    if (form.length === 0) {
+      throw new Error("Form not found");
+    }
+
+    // Check if the form belongs to the current user
+    if (form[0].userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    return form[0];
+  } catch (error) {
+    console.error("Failed to fetch form:", error);
+    throw new Error("Failed to fetch form");
+  }
+}
