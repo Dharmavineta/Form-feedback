@@ -1,12 +1,11 @@
 "use client";
-import React, { useState, useEffect, FC } from "react";
+import React, { FC } from "react";
 import {
   DragDropContext,
   Droppable,
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { toast } from "sonner";
 
 import { Plus, Trash2, GripVertical, LucideGrip } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -26,172 +25,35 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { v4 as uuidv4 } from "uuid";
-import { questionTypeEnum, QuestionOption } from "@/db/schema";
-import { createForm } from "@/app/actions";
-import { useRouter } from "next/navigation";
+import { questionTypeEnum } from "@/db/schema";
+import { useFormStore } from "@/app/store";
 
 type QuestionType = (typeof questionTypeEnum.enumValues)[number];
 
-interface Question {
-  id: string;
-  questionText: string;
-  questionType: QuestionType;
-  options: QuestionOption[];
-  required: boolean;
-}
-
 const FormBuilder: FC = () => {
-  const [formQuestions, setFormQuestions] = useState<Question[]>([]);
-  const [formId, setFormId] = useState<number | null>(null);
-  const [formName, setFormName] = useState<string>("");
-  const [formDescription, setFormDescription] = useState<string>("");
-  const [newOptionInputs, setNewOptionInputs] = useState<
-    Record<string, string>
-  >({});
-  const router = useRouter();
-
-  useEffect(() => {
-    // Only set the formId, don't add an initial question
-    setFormId(1);
-  }, []);
-
-  const addNewQuestion = (questionText: string = "") => {
-    const newQuestion = {
-      id: uuidv4(),
-      questionText: questionText,
-      questionType: "text" as QuestionType,
-      options: [],
-      required: false,
-    };
-    setFormQuestions([...formQuestions, newQuestion]);
-
-    // Scroll to the new question after a short delay to ensure the DOM has updated
-    setTimeout(() => {
-      const newQuestionElement = document.getElementById(
-        `question-${newQuestion.id}`
-      );
-      if (newQuestionElement) {
-        newQuestionElement.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-    }, 100);
-  };
-
-  const updateQuestionText = (id: string, text: string) => {
-    setFormQuestions(
-      formQuestions.map((q) => (q.id === id ? { ...q, questionText: text } : q))
-    );
-  };
-
-  const toggleRequired = (id: string) => {
-    setFormQuestions(
-      formQuestions.map((q) =>
-        q.id === id ? { ...q, required: !q.required } : q
-      )
-    );
-  };
-
-  const updateQuestionType = (id: string, newType: QuestionType) => {
-    setFormQuestions(
-      formQuestions.map((q) =>
-        q.id === id ? { ...q, questionType: newType, options: [] } : q
-      )
-    );
-  };
-
-  const addOption = (questionId: string, optionText: string = "") => {
-    setFormQuestions(
-      formQuestions.map((q) =>
-        q.id === questionId
-          ? {
-              ...q,
-              options: [
-                ...q.options,
-                { id: uuidv4(), text: optionText, order: q.options.length },
-              ],
-            }
-          : q
-      )
-    );
-    setNewOptionInputs({ ...newOptionInputs, [questionId]: "" });
-  };
-
-  const removeOption = (questionId: string, optionId: string) => {
-    setFormQuestions(
-      formQuestions.map((q) =>
-        q.id === questionId
-          ? {
-              ...q,
-              options: q.options.filter((option) => option.id !== optionId),
-            }
-          : q
-      )
-    );
-  };
-
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-
-    const newQuestions = Array.from(formQuestions);
-    const [reorderedItem] = newQuestions.splice(result.source.index, 1);
-    newQuestions.splice(result.destination.index, 0, reorderedItem);
-
-    setFormQuestions(newQuestions);
-  };
-
-  const onOptionDragEnd = (result: DropResult, questionId: string) => {
-    if (!result.destination) return;
-
-    const updatedQuestions = formQuestions.map((q) => {
-      if (q.id === questionId) {
-        const newOptions = Array.from(q.options);
-        const [reorderedItem] = newOptions.splice(result.source.index, 1);
-        newOptions.splice(result.destination!.index, 0, reorderedItem);
-        return { ...q, options: newOptions };
-      }
-      return q;
-    });
-
-    setFormQuestions(updatedQuestions);
-  };
-
-  const deleteQuestion = (id: string) => {
-    setFormQuestions(formQuestions.filter((q) => q.id !== id));
-  };
-
-  const handleSaveForm = async () => {
-    const formData = {
-      title: formName,
-      description: formDescription,
-      questions: formQuestions.map((q) => ({
-        questionText: q.questionText,
-        questionType: q.questionType,
-        required: q.required,
-        options: q.options,
-      })),
-    };
-
-    const promise = createForm(formData);
-
-    toast.promise(promise, {
-      loading: "Creating form...",
-      success: (result) => {
-        // router.push("/dashboard"); // Redirect to forms list page
-        return result.message;
-      },
-      error: (error) => {
-        console.error("Form creation error:", error);
-        return error.message || "Failed to create form";
-      },
-    });
-  };
+  const {
+    formQuestions,
+    formName,
+    formDescription,
+    newOptionInputs,
+    addNewQuestion,
+    updateQuestionText,
+    toggleRequired,
+    updateQuestionType,
+    addOption,
+    removeOption,
+    deleteQuestion,
+    setFormName,
+    setFormDescription,
+    setNewOptionInput,
+    updateOptionText,
+    saveForm,
+    onDragEnd,
+  } = useFormStore();
 
   return (
-    <div className=" px-10 md:px-10 lg:px-20 mx-auto min-h-screen">
-      {/* New Question Widget */}
+    <div className="px-10 md:px-10 lg:px-20 mx-auto min-h-screen">
+      {/* Form Name and Description */}
       <div className="bg-white w-full rounded-lg pt-8 mb-14 md:w-[90%]">
         <div className="w-full">
           <Input
@@ -233,7 +95,7 @@ const FormBuilder: FC = () => {
         </div>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="questions">
+          <Droppable droppableId="questions" type="question">
             {(provided) => (
               <div
                 {...provided.droppableProps}
@@ -243,12 +105,11 @@ const FormBuilder: FC = () => {
                 {formQuestions.map((question, index) => (
                   <Draggable
                     key={question.id}
-                    draggableId={question.id.toString()}
+                    draggableId={question.id}
                     index={index}
                   >
                     {(provided) => (
                       <div
-                        id={`question-${question.id}`}
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         className="bg-white py-10 px-5 relative lg:w-[80%] border rounded-lg border-gray-200"
@@ -345,110 +206,91 @@ const FormBuilder: FC = () => {
                             <h4 className="font-semibold text-muted-foreground mb-2">
                               Options:
                             </h4>
-                            <DragDropContext
-                              onDragEnd={(result) =>
-                                onOptionDragEnd(result, question.id)
-                              }
+                            <Droppable
+                              droppableId={`${question.id}-options`}
+                              type="option"
                             >
-                              <Droppable droppableId={`options-${question.id}`}>
-                                {(provided) => (
-                                  <div
-                                    {...provided.droppableProps}
-                                    ref={provided.innerRef}
-                                  >
-                                    {question.options.map((option, i) => (
-                                      <Draggable
-                                        key={option.id}
-                                        draggableId={option.id.toString()}
-                                        index={i}
-                                      >
-                                        {(provided) => (
-                                          <div
-                                            ref={provided.innerRef}
-                                            {...provided.draggableProps}
-                                            className="flex items-center mb-2"
-                                          >
-                                            <TooltipProvider>
-                                              <Tooltip>
-                                                <TooltipTrigger>
-                                                  <div
-                                                    {...provided.dragHandleProps}
-                                                    className="mr-2"
-                                                  >
-                                                    <GripVertical className="text-gray-400" />
-                                                  </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                  <p>Drag to reorder option</p>
-                                                </TooltipContent>
-                                              </Tooltip>
-                                            </TooltipProvider>
-                                            <Input
-                                              type="text"
-                                              value={option.text}
-                                              onChange={(e) => {
-                                                const newOptions =
-                                                  question.options.map((o) =>
-                                                    o.id === option.id
-                                                      ? {
-                                                          ...o,
-                                                          text: e.target.value,
-                                                        }
-                                                      : o
-                                                  );
-                                                setFormQuestions(
-                                                  formQuestions.map((q) =>
-                                                    q.id === question.id
-                                                      ? {
-                                                          ...q,
-                                                          options: newOptions,
-                                                        }
-                                                      : q
-                                                  )
-                                                );
-                                              }}
-                                              className="mr-2 w-[70%] md:w-full"
-                                            />
-                                            <TooltipProvider>
-                                              <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                      removeOption(
-                                                        question.id,
-                                                        option.id
-                                                      )
-                                                    }
-                                                  >
-                                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                                  </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                  <p>Delete option</p>
-                                                </TooltipContent>
-                                              </Tooltip>
-                                            </TooltipProvider>
-                                          </div>
-                                        )}
-                                      </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                  </div>
-                                )}
-                              </Droppable>
-                            </DragDropContext>
+                              {(provided) => (
+                                <div
+                                  {...provided.droppableProps}
+                                  ref={provided.innerRef}
+                                >
+                                  {question.options.map((option, i) => (
+                                    <Draggable
+                                      key={option.id}
+                                      draggableId={option.id}
+                                      index={i}
+                                    >
+                                      {(provided) => (
+                                        <div
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          {...provided.dragHandleProps}
+                                          className="flex items-center mb-2"
+                                        >
+                                          <TooltipProvider>
+                                            <Tooltip>
+                                              <TooltipTrigger>
+                                                <div
+                                                  {...provided.dragHandleProps}
+                                                  className="mr-2"
+                                                >
+                                                  <GripVertical className="text-gray-400" />
+                                                </div>
+                                              </TooltipTrigger>
+                                              <TooltipContent>
+                                                <p>Drag to reorder option</p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                          <Input
+                                            type="text"
+                                            value={option.text}
+                                            onChange={(e) =>
+                                              updateOptionText(
+                                                question.id,
+                                                option.id,
+                                                e.target.value
+                                              )
+                                            }
+                                            className="mr-2 w-[70%] md:w-full"
+                                          />
+                                          <TooltipProvider>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="icon"
+                                                  onClick={() =>
+                                                    removeOption(
+                                                      question.id,
+                                                      option.id
+                                                    )
+                                                  }
+                                                >
+                                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                                </Button>
+                                              </TooltipTrigger>
+                                              <TooltipContent>
+                                                <p>Delete option</p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  ))}
+                                  {provided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
                             <div className="flex items-center mt-2 ml-6">
                               <Input
                                 type="text"
                                 placeholder="Add option"
                                 value={newOptionInputs[question.id] || ""}
                                 onChange={(e) =>
-                                  setNewOptionInputs({
-                                    ...newOptionInputs,
-                                    [question.id]: e.target.value,
-                                  })
+                                  setNewOptionInput(question.id, e.target.value)
                                 }
                                 onKeyDown={(
                                   e: React.KeyboardEvent<HTMLInputElement>
@@ -532,7 +374,7 @@ const FormBuilder: FC = () => {
         </DragDropContext>
       )}
       <div className="flex justify-end mt-4">
-        <Button size="sm" onClick={handleSaveForm}>
+        <Button size="sm" onClick={saveForm}>
           Save Form
         </Button>
       </div>
