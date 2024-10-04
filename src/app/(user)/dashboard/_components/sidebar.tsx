@@ -4,6 +4,8 @@ import Link from "next/link";
 import { BarChart, CreditCard, Home } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePathname } from "next/navigation";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const Sidebar = () => {
   const pathname = usePathname();
