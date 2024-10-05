@@ -1,8 +1,6 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Switch } from "@/components/ui/switch";
-
 import DataTableActions from "../data-table-actions";
 import UpdateToggle from "../update-toggle";
 
@@ -21,15 +19,6 @@ export const columns: ColumnDef<FormData>[] = [
     accessorKey: "title",
     header: "Title",
   },
-
-  {
-    accessorKey: "isPublished",
-    header: "Status",
-    cell: ({ row }) => {
-      const form = row.original;
-      return <UpdateToggle formId={form.id} publishedAt={form.publishedAt} />;
-    },
-  },
   {
     accessorKey: "createdAt",
     header: "Created At",
@@ -44,6 +33,20 @@ export const columns: ColumnDef<FormData>[] = [
     cell: ({ row }) => {
       const date = row.getValue("publishedAt") as Date | null;
       return date ? date.toLocaleDateString() : "Not published";
+    },
+  },
+  {
+    accessorKey: "isPublished",
+    header: "Status",
+    cell: ({ row }) => {
+      const form = row.original;
+      return (
+        <UpdateToggle
+          key={form.id}
+          formId={form.id}
+          publishedAt={form.publishedAt}
+        />
+      );
     },
   },
   {

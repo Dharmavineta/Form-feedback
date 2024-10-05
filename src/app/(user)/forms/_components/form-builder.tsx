@@ -19,6 +19,7 @@ interface FormBuilderProps {
 }
 
 const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
+  console.log(formData);
   const {
     formQuestions,
     formName,

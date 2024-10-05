@@ -4,6 +4,7 @@ import { questionTypeEnum, QuestionOption } from "@/db/schema";
 import { createForm } from "@/app/actions";
 import { toast } from "sonner";
 import { DropResult } from "@hello-pangea/dnd";
+import { useRouter } from "next/navigation";
 
 export type QuestionType = (typeof questionTypeEnum.enumValues)[number];
 
@@ -181,8 +182,6 @@ export const useFormStore = create<FormState>((set, get) => ({
     toast.promise(promise, {
       loading: "Creating form...",
       success: (result) => {
-        // You might want to clear the form or perform other actions here
-        // set({ formQuestions: [], formName: "", formDescription: "" });
         return result.message;
       },
       error: (error) => {

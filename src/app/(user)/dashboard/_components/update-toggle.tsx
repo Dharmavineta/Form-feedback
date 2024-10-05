@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { updateForm } from "@/app/actions";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -9,17 +9,26 @@ interface UpdateToggleProps {
 }
 
 const UpdateToggle: React.FC<UpdateToggleProps> = ({ formId, publishedAt }) => {
-  const isPublished = !!publishedAt;
+  const [isPublished, setIsPublished] = useState(!!publishedAt);
 
   const handleTogglePublish = async () => {
     const newPublishStatus = !isPublished;
 
+    // Optimistic update
+    setIsPublished(newPublishStatus);
+
     toast.promise(
       async () => {
-        await updateForm({
-          id: formId,
-          publishedAt: newPublishStatus ? new Date() : null,
-        });
+        try {
+          await updateForm({
+            id: formId,
+            publishedAt: newPublishStatus ? new Date() : null,
+          });
+        } catch (error) {
+          // Revert the optimistic update if the server request fails
+          setIsPublished(!newPublishStatus);
+          throw error;
+        }
       },
       {
         loading: `${newPublishStatus ? "Publishing" : "Unpublishing"} form...`,
@@ -32,11 +41,13 @@ const UpdateToggle: React.FC<UpdateToggleProps> = ({ formId, publishedAt }) => {
   };
 
   return (
-    <Switch
-      checked={isPublished}
-      onCheckedChange={handleTogglePublish}
-      className="bg-red-500"
-    />
+    <div style={{ height: "24px", display: "flex", alignItems: "center" }}>
+      <Switch
+        checked={isPublished}
+        onCheckedChange={handleTogglePublish}
+        className="bg-red-500"
+      />
+    </div>
   );
 };
 

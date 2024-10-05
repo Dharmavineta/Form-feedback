@@ -7,11 +7,11 @@ import {
   NewFormType,
   NewQuestionType,
   QuestionOption,
+  users,
 } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 // Update the FormInputType to match the schema
 type FormInputType = Omit<NewFormType, "userId"> & {
@@ -37,16 +37,13 @@ export async function createForm(input: FormInputType) {
       const [createdForm] = await tx.insert(forms).values(newForm).returning();
 
       // Create questions and their options
-      for (let i = 0; i < input.questions.length; i++) {
-        const q = input.questions[i];
-        const newQuestion: NewQuestionType = {
-          ...q,
-          formId: createdForm.id,
-          order: i,
-          options: q.options || [],
-        };
-        await tx.insert(questions).values(newQuestion);
-      }
+      const questionsToInsert = input.questions.map((q, i) => ({
+        ...q,
+        formId: createdForm.id,
+        order: i,
+        options: q.options || [],
+      }));
+      await tx.insert(questions).values(questionsToInsert);
     });
 
     revalidatePath("/forms");
@@ -65,21 +62,17 @@ export async function createUserIfNotExists(
   name: string
 ) {
   try {
-    const existingUsers = await db
-      .select()
-      .from(users)
-      .where(eq(users.clerkId, clerkId))
-      .limit(1);
-
-    const existingUser = existingUsers[0];
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
 
     if (!existingUser) {
-      const result = await db.insert(users).values({
+      await db.insert(users).values({
         clerkId,
         email,
         name,
       });
-      console.log("User created:", result);
+      console.log("User created");
       return { message: "User created successfully" };
     } else {
       console.log("User already exists:", existingUser);
@@ -99,10 +92,10 @@ export async function getForms() {
   }
 
   try {
-    const userForms = await db
-      .select()
-      .from(forms)
-      .where(eq(forms.userId, userId));
+    const userForms = await db.query.forms.findMany({
+      where: eq(forms.userId, userId),
+      orderBy: [desc(forms.updatedAt)],
+    });
 
     return userForms;
   } catch (error) {
@@ -166,22 +159,20 @@ export async function getFormById(formId: string) {
   }
 
   try {
-    const form = await db
-      .select()
-      .from(forms)
-      .where(eq(forms.id, formId))
-      .limit(1);
+    const form = await db.query.forms.findFirst({
+      where: eq(forms.id, formId),
+    });
 
-    if (form.length === 0) {
+    if (!form) {
       throw new Error("Form not found");
     }
 
     // Check if the form belongs to the current user
-    if (form[0].userId !== userId) {
+    if (form.userId !== userId) {
       throw new Error("Unauthorized");
     }
 
-    return form[0];
+    return form;
   } catch (error) {
     console.error("Failed to fetch form:", error);
     throw new Error("Failed to fetch form");
