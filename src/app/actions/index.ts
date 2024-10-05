@@ -95,6 +95,11 @@ export async function getForms() {
     const userForms = await db.query.forms.findMany({
       where: eq(forms.userId, userId),
       orderBy: [desc(forms.updatedAt)],
+      with: {
+        questions: {
+          orderBy: [questions.order],
+        },
+      },
     });
 
     return userForms;
@@ -161,6 +166,11 @@ export async function getFormById(formId: string) {
   try {
     const form = await db.query.forms.findFirst({
       where: eq(forms.id, formId),
+      with: {
+        questions: {
+          orderBy: [questions.order],
+        },
+      },
     });
 
     if (!form) {

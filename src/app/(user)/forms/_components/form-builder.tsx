@@ -13,13 +13,17 @@ import {
 import { useFormStore } from "@/app/store";
 import QuestionList from "./QuestionList";
 import { toast } from "sonner";
-import { FormType } from "@/db/schema";
+import { FormType, QuestionType } from "@/db/schema";
+
+type formWithQuestionType = FormType & {
+  questions: QuestionType[];
+};
 interface FormBuilderProps {
-  formData?: FormType | null;
+  formData?: formWithQuestionType | null;
 }
 
 const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
-  console.log(formData);
+  console.log(formData?.questions[0].options);
   const {
     formQuestions,
     formName,
@@ -110,7 +114,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
         </div>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
-          <QuestionList questions={formQuestions} />
+          <QuestionList questions={formData?.questions || formQuestions} />
         </DragDropContext>
       )}
 
