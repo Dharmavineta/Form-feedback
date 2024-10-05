@@ -16,7 +16,7 @@ const QuestionList: React.FC<QuestionListProps> = React.memo(
           <div
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className="space-y-6"
+            className="space-y-6 flex-1"
           >
             {questions.map((question, index) => (
               <QuestionItem

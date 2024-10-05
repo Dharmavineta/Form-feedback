@@ -15,11 +15,7 @@ const Dashboard = async () => {
       <div className="flex justify-between items-center ">
         <h1 className="text-xl font-bold">Dashboard</h1>
         <Link href="/forms/create">
-          <Button
-            className="flex gap-x-2 text-xs"
-            size={"sm"}
-            variant={"outline"}
-          >
+          <Button className="flex gap-x-2 text-xs" size={"sm"}>
             <Plus className="w-4 h-4" />
             Create New Form
           </Button>

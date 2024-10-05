@@ -14,6 +14,7 @@ import { useFormStore } from "@/app/store";
 import QuestionList from "./QuestionList";
 import { toast } from "sonner";
 import { FormType, QuestionOption, QuestionType } from "@/db/schema";
+import { useRouter } from "next/navigation";
 
 type formWithQuestionType = FormType & {
   questions: QuestionType[];
@@ -33,6 +34,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
     saveForm,
     onDragEnd,
   } = useFormStore();
+  const router = useRouter();
 
   const handleAddNewQuestion = useCallback(() => {
     addNewQuestion();
@@ -47,7 +49,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
   //   return formQuestions;
   // }, [formData, formQuestions]);
 
-  const handleSaveForm = () => {
+  const handleSaveForm = async () => {
     if (!formName.trim()) {
       toast.error("Form Name Required", {
         description: "Please enter a name for your form before saving.",
@@ -74,11 +76,16 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
       return;
     }
 
-    saveForm();
+    try {
+      saveForm();
+      router.push("/dashboard");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
-    <div className="px-10 md:px-10 lg:px-20 mx-auto min-h-screen">
+    <div className="px-10 md:px-10 lg:px-20 mx-auto min-h-[calc(100vh-3.6rem)] flex flex-col ">
       {/* Form Name and Description */}
       <div className="bg-white w-full rounded-lg pt-8 mb-14 md:w-[90%]">
         <div className="w-full">
@@ -101,7 +108,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
       </div>
 
       {formQuestions.length === 0 ? (
-        <div className="flex justify-center items-center">
+        <div className="flex justify-center items-center flex-1 pb-10">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -126,7 +133,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
         </DragDropContext>
       )}
 
-      <div className="flex justify-end mt-4">
+      <div className="flex justify-end items-end mt-4 pb-10">
         <Button size="sm" onClick={handleSaveForm}>
           {formData ? "Save Changes" : "Create Form"}
         </Button>
