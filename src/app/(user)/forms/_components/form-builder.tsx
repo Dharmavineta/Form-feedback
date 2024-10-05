@@ -1,5 +1,5 @@
 "use client";
-import React, { FC, useCallback } from "react";
+import React, { FC, useCallback, useMemo } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import {
 import { useFormStore } from "@/app/store";
 import QuestionList from "./QuestionList";
 import { toast } from "sonner";
-import { FormType, QuestionType } from "@/db/schema";
+import { FormType, QuestionOption, QuestionType } from "@/db/schema";
 
 type formWithQuestionType = FormType & {
   questions: QuestionType[];
@@ -23,7 +23,6 @@ interface FormBuilderProps {
 }
 
 const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
-  console.log(formData?.questions[0].options);
   const {
     formQuestions,
     formName,
@@ -38,6 +37,15 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
   const handleAddNewQuestion = useCallback(() => {
     addNewQuestion();
   }, [addNewQuestion]);
+  // const compatibleQuestions = useMemo(() => {
+  //   if (formData?.questions) {
+  //     return formData.questions.map((q) => ({
+  //       ...q,
+  //       options: q.options as QuestionOption[], // Type assertion
+  //     }));
+  //   }
+  //   return formQuestions;
+  // }, [formData, formQuestions]);
 
   const handleSaveForm = () => {
     if (!formName.trim()) {
@@ -114,7 +122,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
         </div>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
-          <QuestionList questions={formData?.questions || formQuestions} />
+          <QuestionList questions={formQuestions} />
         </DragDropContext>
       )}
 

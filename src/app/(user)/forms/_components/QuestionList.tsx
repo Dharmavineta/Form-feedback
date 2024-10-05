@@ -9,7 +9,7 @@ interface QuestionListProps {
 
 const QuestionList: React.FC<QuestionListProps> = React.memo(
   ({ questions }) => {
-    console.log(questions, "From questionList");
+    console.log(questions);
     return (
       <Droppable droppableId="questions" type="question">
         {(provided) => (
