@@ -12,6 +12,11 @@ import {
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { desc, eq } from "drizzle-orm";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { StreamingTextResponse, GoogleGenerativeAIStream } from "ai";
+
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 // Update the FormInputType to match the schema
 type FormInputType = Omit<NewFormType, "userId"> & {
@@ -186,5 +191,29 @@ export async function getFormById(formId: string) {
   } catch (error) {
     console.error("Failed to fetch form:", error);
     throw new Error("Failed to fetch form");
+  }
+}
+
+export async function rephraseQuestion(question: string, context: string = "") {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const prompt = context
+      ? `Given the following context: "${context}", please rephrase the question: "${question}"`
+      : `Please rephrase the following question: "${question}"`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const rephrasedQuestion = response.text();
+
+    return new Response(JSON.stringify({ rephrasedQuestion }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Failed to rephrase question:", error);
+    return new Response(JSON.stringify({ rephrasedQuestion: question }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }

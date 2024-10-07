@@ -39,15 +39,6 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
   const handleAddNewQuestion = useCallback(() => {
     addNewQuestion();
   }, [addNewQuestion]);
-  // const compatibleQuestions = useMemo(() => {
-  //   if (formData?.questions) {
-  //     return formData.questions.map((q) => ({
-  //       ...q,
-  //       options: q.options as QuestionOption[], // Type assertion
-  //     }));
-  //   }
-  //   return formQuestions;
-  // }, [formData, formQuestions]);
 
   const handleSaveForm = async () => {
     if (!formName.trim()) {

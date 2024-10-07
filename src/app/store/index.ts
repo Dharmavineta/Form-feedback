@@ -1,10 +1,9 @@
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
-import { questionTypeEnum, QuestionOption } from "@/db/schema";
+import { questionTypeEnum, QuestionOption, FormType } from "@/db/schema";
 import { createForm } from "@/app/actions";
 import { toast } from "sonner";
 import { DropResult } from "@hello-pangea/dnd";
-import { useRouter } from "next/navigation";
 
 export type QuestionType = (typeof questionTypeEnum.enumValues)[number];
 
@@ -20,6 +19,10 @@ interface FormState {
   formQuestions: Question[];
   formName: string;
   formDescription: string;
+  // initializeFormData: (
+  //   formData: FormType & { questions: QuestionType[] }
+  // ) => void;
+
   newOptionInputs: Record<string, string>;
   addNewQuestion: (questionText?: string) => void;
   updateQuestionText: (id: string, text: string) => void;
@@ -65,6 +68,20 @@ export const useFormStore = create<FormState>((set, get) => ({
         },
       ],
     })),
+
+  // initializeFormData: (formData) =>
+  //   set({
+  //     formName: formData.title,
+  //     formDescription: formData.description || "",
+  //     formQuestions: formData.questions.map((q) => ({
+  //       id: q.id,
+  //       questionText: q.questionText,
+  //       questionType: q.questionType as QuestionType,
+  //       options: (q.options as QuestionOption[]) || [],
+  //       required: q.required,
+  //     })),
+  //     newOptionInputs: {},
+  //   }),
 
   updateQuestionText: (id, text) =>
     set((state) => ({
