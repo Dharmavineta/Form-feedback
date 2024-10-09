@@ -13,6 +13,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@ai-sdk/google": "^0.0.51",
     "@clerk/nextjs": "^5.6.0",
     "@google/generative-ai": "^0.21.0",
     "@hello-pangea/dnd": "^17.0.0",

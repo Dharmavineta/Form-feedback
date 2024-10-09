@@ -12,11 +12,27 @@ import {
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { desc, eq } from "drizzle-orm";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { StreamingTextResponse, GoogleGenerativeAIStream } from "ai";
+import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
+import { streamText } from "ai";
+import { ReactNode } from "react";
+import { createStreamableValue, getMutableAIState } from "ai/rsc";
+import { AI } from "../lib/ai";
 
 // Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const genAI = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY as string,
+});
+
+export interface ServerMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ClientMessage {
+  id: string;
+  role: "user" | "assistant";
+  display: ReactNode;
+}
 
 // Update the FormInputType to match the schema
 type FormInputType = Omit<NewFormType, "userId"> & {
@@ -80,7 +96,6 @@ export async function createUserIfNotExists(
       console.log("User created");
       return { message: "User created successfully" };
     } else {
-      console.log("User already exists:", existingUser);
       return { message: "User already exists" };
     }
   } catch (error) {
@@ -194,26 +209,34 @@ export async function getFormById(formId: string) {
   }
 }
 
-export async function rephraseQuestion(question: string, context: string = "") {
+export async function continueConversation(
+  question: string,
+  context: string = ""
+) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI("gemini-1.5-flash-8b");
+    const stream = createStreamableValue("");
 
     const prompt = context
-      ? `Given the following context: "${context}", please rephrase the question: "${question}"`
-      : `Please rephrase the following question: "${question}"`;
+      ? `Given the following context: "${context}", please rephrase the question: "${question}" in a casual way`
+      : `Please rephrase the following question: "${question}" in a casual way`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const rephrasedQuestion = response.text();
+    (async () => {
+      const { textStream } = await streamText({
+        model: model,
+        prompt: question,
+      });
 
-    return new Response(JSON.stringify({ rephrasedQuestion }), {
-      headers: { "Content-Type": "application/json" },
-    });
+      for await (const delta of textStream) {
+        stream.update(delta);
+      }
+
+      stream.done();
+    })();
+
+    return { output: stream.value };
   } catch (error) {
     console.error("Failed to rephrase question:", error);
-    return new Response(JSON.stringify({ rephrasedQuestion: question }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    throw error;
   }
 }
