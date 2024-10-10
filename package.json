@@ -49,6 +49,7 @@
     "@tanstack/react-table": "^8.20.5",
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-window": "^1.8.8",
+    "@types/three": "^0.169.0",
     "ai": "^3.4.9",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",

@@ -27,6 +27,7 @@ export async function continueConversation(
   "use server";
 
   const history = getMutableAIState();
+  console.log(history, "This is history");
 
   const result = await streamUI({
     model: genAI("gemini-1.5-flash-8b"),
@@ -39,7 +40,7 @@ export async function continueConversation(
         ]);
       }
 
-      return <div>{content}</div>;
+      return <div> Hello{content}</div>;
     },
     // tools: {
     //   showStockInformation: {

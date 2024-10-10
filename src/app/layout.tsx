@@ -4,7 +4,7 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { UserInitializer } from "@/components/user-create";
-import { AI } from "./lib/ai";
+import { AI } from "./ai/ai";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -35,7 +35,8 @@ export default function RootLayout({
         >
           <UserInitializer />
           <Toaster />
-          <AI>{children}</AI>
+
+          {children}
         </body>
       </html>
     </ClerkProvider>

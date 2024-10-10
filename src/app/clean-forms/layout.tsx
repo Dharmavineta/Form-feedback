@@ -1,5 +1,4 @@
 import React from "react";
-import { AI } from "../lib/ai";
 
 type props = {
   children: React.ReactNode;

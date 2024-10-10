@@ -8,6 +8,10 @@ import {
   NewQuestionType,
   QuestionOption,
   users,
+  responses,
+  answers,
+  NewResponseType,
+  NewAnswerType,
 } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
@@ -209,34 +213,101 @@ export async function getFormById(formId: string) {
   }
 }
 
-export async function continueConversation(
-  question: string,
-  context: string = ""
-) {
+export async function rephraseQuestion(question: string, context: string = "") {
+  const stream = createStreamableValue("");
+
+  const prompt = context
+    ? `Given the following context: "${context}", please rephrase the question: "${question}" in a very conversational way and give me the rephrased question only`
+    : `Please rephrase the following question: "${question}" in a very conversational way and give me the rephrased question only`;
+
+  (async () => {
+    const { textStream } = await streamText({
+      model: genAI("gemini-1.5-flash-8b"),
+      prompt: prompt,
+    });
+
+    for await (const delta of textStream) {
+      stream.update(delta);
+    }
+
+    stream.done();
+  })();
+
+  return { output: stream.value };
+}
+
+export async function initializeResponse(formId: string) {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
   try {
-    const model = genAI("gemini-1.5-flash-8b");
-    const stream = createStreamableValue("");
+    const newResponse: NewResponseType = {
+      formId,
+      sessionId: "", // You might want to implement session management
+      isComplete: false,
+      startedAt: new Date(),
+    };
 
-    const prompt = context
-      ? `Given the following context: "${context}", please rephrase the question: "${question}" in a casual way`
-      : `Please rephrase the following question: "${question}" in a casual way`;
+    const [createdResponse] = await db
+      .insert(responses)
+      .values(newResponse)
+      .returning();
 
-    (async () => {
-      const { textStream } = await streamText({
-        model: model,
-        prompt: question,
-      });
-
-      for await (const delta of textStream) {
-        stream.update(delta);
-      }
-
-      stream.done();
-    })();
-
-    return { output: stream.value };
+    return { responseId: createdResponse.id };
   } catch (error) {
-    console.error("Failed to rephrase question:", error);
-    throw error;
+    console.error("Failed to initialize response:", error);
+    throw new Error("Failed to initialize response");
+  }
+}
+
+export async function saveAnswer(answer: NewAnswerType) {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    await db.insert(answers).values(answer);
+    return { message: "Answer saved successfully" };
+  } catch (error) {
+    console.error("Failed to save answer:", error);
+    throw new Error("Failed to save answer");
+  }
+}
+
+export async function submitResponses(
+  responseId: string,
+  submittedAnswers: NewAnswerType[]
+) {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      // Update the response to mark it as complete
+      await tx
+        .update(responses)
+        .set({ isComplete: true, completedAt: new Date() })
+        .where(eq(responses.id, responseId));
+
+      // Insert all answers
+      if (submittedAnswers.length > 0) {
+        for (const answer of submittedAnswers) {
+          await tx.insert(answers).values(answer);
+        }
+      }
+    });
+
+    return { message: "Responses submitted successfully" };
+  } catch (error) {
+    console.error("Failed to submit responses:", error);
+    throw new Error("Failed to submit responses");
   }
 }
