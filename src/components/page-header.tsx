@@ -8,8 +8,11 @@ import {
 import { Button } from "./ui/button";
 import { MenuButton } from "@/app/(user)/dashboard/_components/dash-menu-button";
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
 
 export const PageHeader = () => {
+  const { userId } = auth();
+
   return (
     <header className="border-b">
       <div className="flex h-14 justify-between items-center px-10">
@@ -20,6 +23,13 @@ export const PageHeader = () => {
           </Link>
         </div>
         <div className="flex space-x-5">
+          {userId && (
+            <div>
+              <Button size={"sm"} variant={"link"}>
+                Dashboard
+              </Button>
+            </div>
+          )}
           <SignedOut>
             <SignInButton>
               <Button variant={"outline"}>Login</Button>

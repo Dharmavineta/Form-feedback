@@ -14,9 +14,9 @@ const Hero = () => {
               </span>{" "}
             </h1>
             <p className="px-0 mb-8 text-lg text-gray-600 md:text-xl lg:px-24">
-              Start gaining the traction you&apos;ve always wanted with our
-              next-level templates and designs. Crafted to help you tell your
-              story.
+              Elevate Your Data Collection Efforts Create stunning forms
+              effortlessly with our intuitive builder, designed to simplify your
+              workflow.
             </p>
             <div className="mb-4 space-x-0 md:space-x-2 md:mb-8">
               <a
