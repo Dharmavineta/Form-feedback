@@ -1,10 +1,12 @@
-import NewProject from "@/components/new-project";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import React from "react";
+import Hero from "./_components/Hero";
 
 const Home = () => {
-  return <div>This is the Home Page</div>;
+  return (
+    <div>
+      <Hero />
+    </div>
+  );
 };
 
 export default Home;
