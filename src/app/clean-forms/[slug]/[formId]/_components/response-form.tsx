@@ -291,7 +291,7 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-6 w-full">
+    <div className="min-h-screen flex flex-col p-6 w-full font-sans">
       <div className="w-full flex text-left flex-col">
         <h2 className="text-3xl font-bold mb-2">{form.title}</h2>
         <p className="text-lg mb-12">{form.description}</p>
@@ -310,7 +310,9 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                 className="mb-6 w-full"
               >
                 <h3 className="text-2xl font-semibold mb-4 text-start">
-                  {streamedQuestion || "Rephrasing question..."}
+                  {streamedQuestion || (
+                    <div className="h-5 w-2 animate-pulse bg-black"></div>
+                  )}
                 </h3>
                 {!isRephrasing && streamedQuestion && renderQuestionInput()}
               </motion.div>

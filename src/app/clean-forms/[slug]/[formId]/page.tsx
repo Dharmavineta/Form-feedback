@@ -11,9 +11,9 @@ const FormView = async ({
   return (
     <div
       className="min-h-screen flex items-center justify-center"
-      style={{
-        backgroundImage: "linear-gradient(to top, #fad0c4 0%, #ffd1ff 100%)",
-      }}
+      // style={{
+      //   backgroundImage: "linear-gradient(to top, #fad0c4 0%, #ffd1ff 100%)",
+      // }}
     >
       <ResponseForm formData={formData} />
     </div>

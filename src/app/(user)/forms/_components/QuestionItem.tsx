@@ -18,12 +18,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useFormStore, Question } from "@/app/store";
-import { questionTypeEnum } from "@/db/schema";
-import { QuestionType } from "@/app/store";
+import { useFormStore } from "@/app/store";
+import { QuestionType, questionTypeEnum } from "@/db/schema";
 
 interface QuestionItemProps {
-  question: Question;
+  question: QuestionType;
   index: number;
   isNewlyAdded: boolean;
   questionNumber: number; // Add this line
@@ -49,7 +48,7 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
       (question.questionType === "radio" ||
         question.questionType === "checkbox" ||
         question.questionType === "select") &&
-      question.options.length === 0 &&
+      question.options?.length === 0 &&
       newOptionInputRef.current
     ) {
       // Add a slight delay to ensure the input is rendered
@@ -57,7 +56,7 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
         newOptionInputRef.current?.focus();
       }, 0);
     }
-  }, [question.questionType, question.options.length]);
+  }, [question.questionType, question.options?.length]);
 
   const {
     updateQuestionText,
@@ -89,7 +88,7 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
                       {...provided.dragHandleProps}
                       className="absolute -left-8 top-1/2 -translate-y-1/2 flex items-center"
                     >
-                      <LucideGrip className="text-sky-400 w-4 h-4 md:w-5 md:h-5" />
+                      <LucideGrip className="text-purple-400 w-4 h-4 md:w-5 md:h-5" />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -132,7 +131,10 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
               <Select
                 value={question.questionType}
                 onValueChange={(value) =>
-                  updateQuestionType(question.id, value as QuestionType)
+                  updateQuestionType(
+                    question.id,
+                    value as (typeof questionTypeEnum.enumValues)[number]
+                  )
                 }
               >
                 <SelectTrigger className="w-[200px] md:w-[300px]">
@@ -149,7 +151,7 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
               <div className="flex items-center">
                 <Checkbox
                   id={`required-${question.id}`}
-                  checked={question.required}
+                  checked={question.required || false}
                   onCheckedChange={() => toggleRequired(question.id)}
                   className="mr-2"
                 />
@@ -176,7 +178,7 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
                       {...optionsProvided.droppableProps}
                       ref={optionsProvided.innerRef}
                     >
-                      {question.options.map((option, optionIndex) => (
+                      {question?.options?.map((option, optionIndex) => (
                         <Draggable
                           key={option.id}
                           draggableId={`${question.id}-${option.id}`}
