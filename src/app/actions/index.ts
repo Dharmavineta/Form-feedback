@@ -26,17 +26,6 @@ const genAI = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY as string,
 });
 
-export interface ServerMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-export interface ClientMessage {
-  id: string;
-  role: "user" | "assistant";
-  display: ReactNode;
-}
-
 // Update the FormInputType to match the schema
 type FormInputType = Omit<NewFormType, "userId"> & {
   questions: (Omit<NewQuestionType, "formId" | "order"> & {
