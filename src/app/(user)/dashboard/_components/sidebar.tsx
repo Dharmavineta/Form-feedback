@@ -32,7 +32,7 @@ const Sidebar = () => {
                 active:bg-accent/80 focus:bg-accent focus:text-accent-foreground
               `}
             >
-              <link.icon className="h-4 w-4 text-sky-700" />
+              <link.icon className="h-4 w-4 text-purple-600" />
               <span>{link.name}</span>
             </Link>
           ))}
