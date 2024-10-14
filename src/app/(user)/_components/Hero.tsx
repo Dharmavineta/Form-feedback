@@ -14,7 +14,7 @@ const Hero = () => {
               </span>{" "}
             </h1>
             <p className="px-0 mb-8 text-lg text-gray-600 md:text-xl lg:px-24">
-              Elevate Your Data Collection Efforts Create stunning forms
+              Elevate Your Data Collection Efforts. Create stunning forms
               effortlessly with our intuitive builder, designed to simplify your
               workflow.
             </p>
