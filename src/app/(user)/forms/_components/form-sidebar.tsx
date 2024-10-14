@@ -12,7 +12,7 @@ const FormSidebar = () => {
   const [disabled, setDisabled] = useState(true);
   const { formId } = useFormStore();
   return (
-    <div className="hidden md:fixed h-screen md:block border-r w-[350px]">
+    <div className="hidden md:fixed h-screen lg:block border-r w-[350px]">
       <div className="flex flex-col gap-y-5">
         <div className="pt-10 px-5 space-y-1 ">
           <Label className="font-bold" htmlFor="ai">
