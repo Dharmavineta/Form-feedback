@@ -18,6 +18,7 @@ import { FormType, QuestionType } from "@/db/schema";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 type FormDataType = FormType & { questions: QuestionType[] };
 
@@ -85,6 +86,8 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     rephraseCurrentQuestion();
   }, [form, currentQuestionIndex, rephraseCurrentQuestion, rephrasedQuestions]);
 
+  const router = useRouter();
+
   const handleAnswer = () => {
     if (!form) return;
 
@@ -100,7 +103,6 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
         questionId: currentQuestion.id,
         answerText: currentAnswer,
       });
-      // Update conversation history
       updateConversationHistory(
         rephrasedQuestions[currentQuestionIndex] ||
           currentQuestion.questionText,
@@ -113,6 +115,8 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       moveToNextQuestion();
     } else {
       handleSubmit();
+      // Redirect to the thank you page
+      router.push("/thank-you");
     }
   };
 
