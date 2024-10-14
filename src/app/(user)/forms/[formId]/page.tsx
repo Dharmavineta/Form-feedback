@@ -13,14 +13,12 @@ const FormPage = async ({ params }: FormPageProps) => {
   const formId = params.formId;
 
   if (formId === "create") {
-    // Handle new form creation
     return <FormBuilder formData={null} />;
   }
 
   const form = await getFormById(formId);
 
   if (!form) {
-    // Handle non-existent form
     notFound();
   }
 

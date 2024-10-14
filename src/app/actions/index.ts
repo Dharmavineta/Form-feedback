@@ -341,3 +341,51 @@ export async function submitResponses(
     throw new Error("Failed to submit responses");
   }
 }
+
+export async function updateExistingForm(
+  input: FormInputType & { id: string }
+) {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    return await db.transaction(async (tx) => {
+      // Update the form
+      await tx
+        .update(forms)
+        .set({
+          title: input.title,
+          description: input.description,
+          isPublished: input.isPublished ?? false,
+          updatedAt: new Date(),
+        })
+        .where(eq(forms.id, input.id));
+
+      // Delete all existing questions
+      await tx.delete(questions).where(eq(questions.formId, input.id));
+
+      // Insert new questions
+      const questionsToInsert = input.questions.map((q, index) => ({
+        formId: input.id,
+        questionText: q.questionText,
+        questionType: q.questionType,
+        order: index,
+        required: q.required ?? false,
+        options: q.options,
+      }));
+
+      await tx.insert(questions).values(questionsToInsert);
+
+      revalidatePath("/forms");
+      revalidatePath("/dashboard");
+
+      return { message: "Form updated successfully", formId: input.id };
+    });
+  } catch (error) {
+    console.error("Failed to update form:", error);
+    throw new Error("Failed to update form");
+  }
+}

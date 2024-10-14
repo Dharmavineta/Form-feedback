@@ -15,6 +15,8 @@ import QuestionList from "./QuestionList";
 import { toast } from "sonner";
 import { FormType, QuestionType } from "@/db/schema";
 import { useRouter } from "next/navigation";
+import { updateExistingForm } from "@/app/actions";
+import Link from "next/link";
 
 type FormWithQuestions = FormType & {
   questions: QuestionType[];
@@ -84,8 +86,70 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
     });
   };
 
+  const handleEdit = async () => {
+    if (!formData) {
+      toast.error("No form data to update");
+      return;
+    }
+
+    if (!formName.trim()) {
+      toast.error("Form Name Required", {
+        description: "Please enter a name for your form before saving.",
+      });
+      return;
+    }
+
+    const emptyQuestions = formQuestions
+      .map((q, index) => ({ ...q, number: index + 1 }))
+      .filter((q) => !q.questionText.trim());
+
+    if (emptyQuestions.length > 0) {
+      const emptyQuestionNumbers = emptyQuestions
+        .map((q) => q.number)
+        .join(", ");
+      const questionWord =
+        emptyQuestions.length === 1 ? "question" : "questions";
+      const isAre = emptyQuestions.length === 1 ? "is" : "are";
+
+      toast.error("Empty Questions", {
+        description: `Please fill in all question texts before saving. 
+          ${emptyQuestions.length} ${questionWord} ${isAre} empty: ${emptyQuestionNumbers}.`,
+      });
+      return;
+    }
+
+    const updatedFormData = {
+      id: formData.id,
+      title: formName,
+      description: formDescription,
+      isPublished: formData.isPublished,
+      questions: formQuestions.map((q) => ({
+        questionText: q.questionText,
+        questionType: q.questionType,
+        required: q.required,
+        options: q.options,
+      })),
+    };
+
+    toast.promise(updateExistingForm(updatedFormData), {
+      loading: "Updating your form...",
+      success: (data) => {
+        return `${data.message}`;
+      },
+      error: "Failed to update the form",
+    });
+  };
+
   return (
     <div className="px-10 md:px-10 lg:px-20 mx-auto min-h-[calc(100vh-3.6rem)] flex flex-col ">
+      <div className="flex justify-start w-full pt-4">
+        <Link
+          className="text-sm  hover:underline flex items-center justify-center"
+          href={"/dashboard"}
+        >
+          &larr; Dashboard
+        </Link>
+      </div>
       {/* Form Name and Description */}
       <div className="bg-white w-full rounded-lg pt-8 mb-14 md:w-[90%]">
         <div className="w-full">
@@ -136,7 +200,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
       )}
 
       <div className="flex justify-end items-end mt-4 pb-10">
-        <Button size="sm" onClick={handleSaveForm}>
+        <Button size="sm" onClick={formData ? handleEdit : handleSaveForm}>
           {formData ? "Save Changes" : "Create Form"}
         </Button>
       </div>
