@@ -1,33 +1,31 @@
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
-import { questionTypeEnum, QuestionOption, FormType } from "@/db/schema";
-import { createForm } from "@/app/actions";
-import { toast } from "sonner";
+import {
+  FormType,
+  QuestionType,
+  QuestionOption,
+  questionTypeEnum,
+} from "@/db/schema";
 import { DropResult } from "@hello-pangea/dnd";
-
-export type QuestionType = (typeof questionTypeEnum.enumValues)[number];
-
-export interface Question {
-  id: string;
-  questionText: string;
-  questionType: QuestionType;
-  options: QuestionOption[];
-  required: boolean;
-}
+import { createForm } from "../actions";
 
 interface FormState {
-  formQuestions: Question[];
+  formId: string | null;
   formName: string;
   formDescription: string;
-  // initializeFormData: (
-  //   formData: FormType & { questions: QuestionType[] }
-  // ) => void;
-
+  formQuestions: QuestionType[];
   newOptionInputs: Record<string, string>;
+
+  initializeFormData: (
+    formData: (FormType & { questions: QuestionType[] }) | null
+  ) => void;
   addNewQuestion: (questionText?: string) => void;
   updateQuestionText: (id: string, text: string) => void;
   toggleRequired: (id: string) => void;
-  updateQuestionType: (id: string, newType: QuestionType) => void;
+  updateQuestionType: (
+    id: string,
+    newType: QuestionType["questionType"]
+  ) => void;
   addOption: (questionId: string, optionText?: string) => void;
   removeOption: (questionId: string, optionId: string) => void;
   reorderQuestions: (startIndex: number, endIndex: number) => void;
@@ -45,15 +43,39 @@ interface FormState {
     optionId: string,
     text: string
   ) => void;
-  saveForm: () => Promise<void>;
+  saveForm: () => Promise<{ message: string; formId: string }>;
   onDragEnd: (result: DropResult) => void;
 }
 
 export const useFormStore = create<FormState>((set, get) => ({
-  formQuestions: [],
+  formId: null,
   formName: "",
   formDescription: "",
+  formQuestions: [],
   newOptionInputs: {},
+
+  initializeFormData: (
+    formData: (FormType & { questions: QuestionType[] }) | null
+  ) =>
+    set(() => {
+      if (!formData) {
+        return {
+          formId: null,
+          formName: "",
+          formDescription: "",
+          formQuestions: [],
+          newOptionInputs: {},
+        };
+      }
+
+      return {
+        formId: formData.id,
+        formName: formData.title,
+        formDescription: formData.description || "",
+        formQuestions: formData.questions,
+        newOptionInputs: {},
+      };
+    }),
 
   addNewQuestion: (questionText = "") =>
     set((state) => ({
@@ -61,27 +83,17 @@ export const useFormStore = create<FormState>((set, get) => ({
         ...state.formQuestions,
         {
           id: uuidv4(),
+          formId: state.formId || "",
           questionText,
           questionType: "text",
-          options: [],
+          order: state.formQuestions.length,
           required: false,
+          options: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       ],
     })),
-
-  // initializeFormData: (formData) =>
-  //   set({
-  //     formName: formData.title,
-  //     formDescription: formData.description || "",
-  //     formQuestions: formData.questions.map((q) => ({
-  //       id: q.id,
-  //       questionText: q.questionText,
-  //       questionType: q.questionType as QuestionType,
-  //       options: (q.options as QuestionOption[]) || [],
-  //       required: q.required,
-  //     })),
-  //     newOptionInputs: {},
-  //   }),
 
   updateQuestionText: (id, text) =>
     set((state) => ({
@@ -111,8 +123,12 @@ export const useFormStore = create<FormState>((set, get) => ({
           ? {
               ...q,
               options: [
-                ...q.options,
-                { id: uuidv4(), text: optionText, order: q.options.length },
+                ...(q.options || []),
+                {
+                  id: uuidv4(),
+                  text: optionText,
+                  order: (q.options || []).length,
+                },
               ],
             }
           : q
@@ -124,7 +140,10 @@ export const useFormStore = create<FormState>((set, get) => ({
     set((state) => ({
       formQuestions: state.formQuestions.map((q) =>
         q.id === questionId
-          ? { ...q, options: q.options.filter((o) => o.id !== optionId) }
+          ? {
+              ...q,
+              options: (q.options || []).filter((o) => o.id !== optionId),
+            }
           : q
       ),
     })),
@@ -141,10 +160,9 @@ export const useFormStore = create<FormState>((set, get) => ({
     set((state) => {
       const updatedQuestions = state.formQuestions.map((q) => {
         if (q.id === questionId) {
-          const newOptions = Array.from(q.options);
+          const newOptions = Array.from(q.options || []);
           const [reorderedItem] = newOptions.splice(startIndex, 1);
           newOptions.splice(endIndex, 0, reorderedItem);
-          // Update the order property of each option
           newOptions.forEach((option, index) => {
             option.order = index;
           });
@@ -173,7 +191,7 @@ export const useFormStore = create<FormState>((set, get) => ({
         q.id === questionId
           ? {
               ...q,
-              options: q.options.map((o) =>
+              options: (q.options || []).map((o) =>
                 o.id === optionId ? { ...o, text } : o
               ),
             }
@@ -194,18 +212,13 @@ export const useFormStore = create<FormState>((set, get) => ({
       })),
     };
 
-    const promise = createForm(formData);
-
-    toast.promise(promise, {
-      loading: "Creating form...",
-      success: (result) => {
-        return result.message;
-      },
-      error: (error) => {
-        console.error("Form creation error:", error);
-        return error.message || "Failed to create form";
-      },
-    });
+    try {
+      const result = await createForm(formData);
+      return result;
+    } catch (error) {
+      console.error("Failed to create form:", error);
+      throw error;
+    }
   },
 
   onDragEnd: (result: DropResult) => {
@@ -232,7 +245,7 @@ export const useFormStore = create<FormState>((set, get) => ({
       set((state) => {
         const updatedQuestions = state.formQuestions.map((q) => {
           if (q.id === questionId) {
-            const newOptions = Array.from(q.options);
+            const newOptions = Array.from(q.options || []);
             const [reorderedItem] = newOptions.splice(source.index, 1);
             newOptions.splice(destination.index, 0, reorderedItem);
             newOptions.forEach((option, index) => {

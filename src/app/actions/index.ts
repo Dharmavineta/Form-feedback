@@ -19,8 +19,7 @@ import { desc, eq } from "drizzle-orm";
 import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
 import { streamText } from "ai";
 import { ReactNode } from "react";
-import { createStreamableValue, getMutableAIState } from "ai/rsc";
-import { AI } from "../lib/ai";
+import { createStreamableValue } from "ai/rsc";
 
 // Initialize Gemini AI
 const genAI = createGoogleGenerativeAI({
@@ -41,9 +40,17 @@ export interface ClientMessage {
 // Update the FormInputType to match the schema
 type FormInputType = Omit<NewFormType, "userId"> & {
   questions: (Omit<NewQuestionType, "formId" | "order"> & {
-    options?: QuestionOption[];
+    options?: QuestionOption[] | null;
   })[];
 };
+
+export async function aiGenerateForm(input: string) {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+}
 
 export async function createForm(input: FormInputType) {
   const { userId } = auth();
@@ -53,28 +60,35 @@ export async function createForm(input: FormInputType) {
   }
 
   try {
-    await db.transaction(async (tx) => {
+    return await db.transaction(async (tx) => {
       // Create the form
-      const newForm: NewFormType = {
-        ...input,
-        userId,
-      };
-      const [createdForm] = await tx.insert(forms).values(newForm).returning();
+      const [createdForm] = await tx
+        .insert(forms)
+        .values({
+          userId,
+          title: input.title,
+          description: input.description,
+          isPublished: input.isPublished ?? false,
+        })
+        .returning();
 
-      // Create questions and their options
-      const questionsToInsert = input.questions.map((q, i) => ({
-        ...q,
+      // Create questions
+      const questionsToInsert = input.questions.map((q, index) => ({
         formId: createdForm.id,
-        order: i,
-        options: q.options || [],
+        questionText: q.questionText,
+        questionType: q.questionType,
+        order: index,
+        required: q.required ?? false,
+        options: q.options,
       }));
+
       await tx.insert(questions).values(questionsToInsert);
+
+      revalidatePath("/forms");
+      revalidatePath("/dashboard");
+
+      return { message: "Form created successfully", formId: createdForm.id };
     });
-
-    revalidatePath("/forms");
-    revalidatePath("/dashboard");
-
-    return { message: "Form created successfully" };
   } catch (error) {
     console.error("Failed to create form:", error);
     throw new Error("Failed to create form");

@@ -8,9 +8,9 @@ type props = {
 
 const layout: FC<props> = ({ children }) => {
   return (
-    <div className="flex h-[calc(100vh-3.6rem)]">
+    <div className="">
       <FormSidebar />
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 md:ml-[350px] h-[calc(100vh-3.6rem)]">
         <div className="h-full">{children}</div>
       </ScrollArea>
     </div>

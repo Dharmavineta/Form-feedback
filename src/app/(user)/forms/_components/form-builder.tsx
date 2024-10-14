@@ -1,5 +1,5 @@
 "use client";
-import React, { FC, useCallback, useMemo } from "react";
+import React, { FC, useCallback, useEffect, useMemo } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -13,17 +13,19 @@ import {
 import { useFormStore } from "@/app/store";
 import QuestionList from "./QuestionList";
 import { toast } from "sonner";
-import { FormType, QuestionOption, QuestionType } from "@/db/schema";
+import { FormType, QuestionType } from "@/db/schema";
 import { useRouter } from "next/navigation";
 
-type formWithQuestionType = FormType & {
+type FormWithQuestions = FormType & {
   questions: QuestionType[];
 };
+
 interface FormBuilderProps {
-  formData?: formWithQuestionType | null;
+  formData: FormWithQuestions | null;
 }
 
 const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
+  console.log(formData, "THis is my formData");
   const {
     formQuestions,
     formName,
@@ -33,8 +35,13 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
     setFormDescription,
     saveForm,
     onDragEnd,
+    initializeFormData,
   } = useFormStore();
   const router = useRouter();
+
+  useEffect(() => {
+    initializeFormData(formData);
+  }, [formData, initializeFormData]);
 
   const handleAddNewQuestion = useCallback(() => {
     addNewQuestion();
@@ -67,12 +74,14 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
       return;
     }
 
-    try {
-      saveForm();
-      router.push("/dashboard");
-    } catch (error) {
-      console.log(error);
-    }
+    toast.promise(saveForm(), {
+      loading: "Creating your form...",
+      success: (data) => {
+        router.push("/dashboard");
+        return `${data.message} `;
+      },
+      error: "Failed to create the form",
+    });
   };
 
   return (
@@ -119,9 +128,11 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
           </TooltipProvider>
         </div>
       ) : (
-        <DragDropContext onDragEnd={onDragEnd}>
-          <QuestionList questions={formQuestions} />
-        </DragDropContext>
+        <div>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <QuestionList questions={formQuestions} />
+          </DragDropContext>
+        </div>
       )}
 
       <div className="flex justify-end items-end mt-4 pb-10">

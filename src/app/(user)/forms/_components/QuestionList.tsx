@@ -1,15 +1,14 @@
 import React from "react";
 import { Droppable } from "@hello-pangea/dnd";
 import QuestionItem from "./QuestionItem";
-import { Question } from "@/app/store";
+import { QuestionType } from "@/db/schema";
 
 interface QuestionListProps {
-  questions: Question[];
+  questions: QuestionType[];
 }
 
 const QuestionList: React.FC<QuestionListProps> = React.memo(
   ({ questions }) => {
-    console.log(questions);
     return (
       <Droppable droppableId="questions" type="question">
         {(provided) => (
