@@ -1,5 +1,5 @@
 "use client";
-import React, { FC, useCallback, useEffect, useMemo } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { FormType, QuestionType } from "@/db/schema";
 import { useRouter } from "next/navigation";
 import { updateExistingForm } from "@/app/actions";
 import Link from "next/link";
+import LoadingState from "./loading-state";
 
 type FormWithQuestions = FormType & {
   questions: QuestionType[];
@@ -27,7 +28,7 @@ interface FormBuilderProps {
 }
 
 const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
-  console.log(formData, "THis is my formData");
+  const [loading, setLoading] = useState(true);
   const {
     formQuestions,
     formName,
@@ -43,6 +44,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
 
   useEffect(() => {
     initializeFormData(formData);
+    setLoading(false);
   }, [formData, initializeFormData]);
 
   const handleAddNewQuestion = useCallback(() => {
@@ -85,6 +87,8 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
       error: "Failed to create the form",
     });
   };
+
+  if (loading) return <LoadingState />;
 
   const handleEdit = async () => {
     if (!formData) {
