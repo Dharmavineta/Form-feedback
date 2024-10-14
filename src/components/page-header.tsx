@@ -25,9 +25,11 @@ export const PageHeader = () => {
         <div className="flex space-x-5">
           {userId && (
             <div>
-              <Button size={"sm"} variant={"link"}>
-                Dashboard
-              </Button>
+              <Link href={"/dashboard"}>
+                <Button size={"sm"} variant={"link"}>
+                  Dashboard
+                </Button>
+              </Link>
             </div>
           )}
           <SignedOut>
