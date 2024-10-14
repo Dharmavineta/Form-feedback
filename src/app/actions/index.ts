@@ -392,9 +392,9 @@ export async function getPublicFormById(formId: string) {
     }
 
     // Only return the form if it's published
-    if (!form.isPublished) {
-      throw new Error("Form is not published");
-    }
+    // if (!form.isPublished) {
+    //   throw new Error("Form is not published");
+    // }
 
     // Remove sensitive information
     const { userId, ...publicForm } = form;
