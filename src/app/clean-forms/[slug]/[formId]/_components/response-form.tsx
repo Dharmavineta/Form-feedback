@@ -41,7 +41,7 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   const [isRephrasing, setIsRephrasing] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
   const [streamedQuestion, setStreamedQuestion] = useState<string>("");
-  console.log(formData);
+  console.log(formData, "This is the formDATA bingo dingo dingo");
 
   useEffect(() => {
     setForm(formData);
@@ -186,7 +186,10 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
         );
       case "radio":
         return (
-          <RadioGroup onValueChange={(value) => setCurrentAnswer(value)}>
+          <RadioGroup
+            onValueChange={(value) => setCurrentAnswer(value)}
+            className="grid grid-cols-1 gap-y-5  "
+          >
             <AnimatePresence>
               {currentQuestion.options?.map((option, index) => (
                 <motion.div
@@ -195,10 +198,12 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                   animate="visible"
                   variants={fadeVariants}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="flex items-center space-x-2 mb-2"
+                  className="flex items-center space-x-2 mb-2  "
                 >
                   <RadioGroupItem value={option.id} id={option.id} />
-                  <Label htmlFor={option.id}>{option.text}</Label>
+                  <Label htmlFor={option.id} className="font-medium text-sm">
+                    {option.text}
+                  </Label>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -298,7 +303,7 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       </div>
       <div className="flex-1 flex mt-40 justify-center">
         {currentQuestionIndex < form.questions.length ? (
-          <div className="flex flex-col items-center w-full max-w-2xl">
+          <div className="flex flex-col items-center w-full max-w-2xl ">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentQuestionIndex}
@@ -307,9 +312,9 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                 exit="hidden"
                 variants={fadeVariants}
                 transition={{ duration: 0.5 }}
-                className="mb-6 w-full"
+                className="mb-6 w-full flex flex-col gap-y-4"
               >
-                <h3 className="text-2xl font-semibold mb-4 text-start">
+                <h3 className="text-2xl font-semibold mb-4 text-start border-b border-purple-200 pb-2">
                   {streamedQuestion || (
                     <div className="h-5 w-2 animate-pulse bg-black"></div>
                   )}
