@@ -181,10 +181,9 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="lg"
-                  variant="outline"
+                  size="icon"
                   onClick={handleAddNewQuestion}
-                  className="rounded-full bg-purple-400 hover:bg-purple-800 hover:text-white h-12 w-12 transition-colors duration-300 flex items-center p-0 justify-center"
+                  className="rounded-full h-12 w-12"
                 >
                   <Plus className="h-4 w-4 " />
                 </Button>
