@@ -4,7 +4,6 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { UserInitializer } from "@/components/user-create";
-import { AI } from "./ai/ai";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
