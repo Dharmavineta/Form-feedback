@@ -52,12 +52,13 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     if (!form || currentQuestionIndex >= form.questions.length) return;
 
     setIsRephrasing(true);
-    setStreamedQuestion("");
     const currentQuestion = form.questions[currentQuestionIndex];
 
     // Build context from conversation history
     const context = conversationHistory
-      .map(({ question, answer }) => `Q: "${question}" A: "${answer}"`)
+      .map(
+        ({ question, answer }) => `Question: "${question}" Answer: "${answer}"`
+      )
       .join("\n");
 
     try {

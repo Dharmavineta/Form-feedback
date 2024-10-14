@@ -279,6 +279,22 @@ export async function saveAnswer(answer: NewAnswerType) {
   }
 }
 
+export async function saveAnswerToDatabase(answer: NewAnswerType) {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    await db.insert(answers).values(answer);
+    return { message: "Answer saved successfully" };
+  } catch (error) {
+    console.error("Failed to save answer:", error);
+    throw new Error("Failed to save answer");
+  }
+}
+
 export async function submitResponses(
   responseId: string,
   submittedAnswers: NewAnswerType[]

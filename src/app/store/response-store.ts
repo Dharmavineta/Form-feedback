@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { FormType, QuestionType, NewAnswerType } from "@/db/schema";
-import { initializeResponse, saveAnswer, submitResponses } from "@/app/actions";
+import {
+  initializeResponse,
+  saveAnswerToDatabase,
+  submitResponses,
+} from "@/app/actions";
 
 interface ResponseState {
   form: (FormType & { questions: QuestionType[] }) | null;
@@ -66,7 +70,7 @@ export const useResponseStore = create<ResponseState>((set, get) => ({
     }
     const newAnswer: NewAnswerType = { ...answer, responseId };
     try {
-      await saveAnswer(newAnswer);
+      await saveAnswerToDatabase(newAnswer); // Call to external function
       set((state) => ({
         answers: [...state.answers, newAnswer],
       }));
