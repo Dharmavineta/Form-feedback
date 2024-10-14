@@ -182,8 +182,9 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
           >
             <Input
               type="text"
+              placeholder="Type your answer here"
               onChange={(e) => setCurrentAnswer(e.target.value)}
-              className="w-full"
+              className="w-full border-t-0 border-r-0 border-l-0 rounded-r-none rounded-l-none "
             />
           </motion.div>
         );
@@ -317,7 +318,7 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                 transition={{ duration: 0.5 }}
                 className="mb-6 w-full flex flex-col gap-y-4"
               >
-                <h3 className="text-2xl font-semibold mb-4 text-start border-b border-purple-200 pb-2">
+                <h3 className="text-2xl font-semibold mb-4 text-start  pb-2">
                   {streamedQuestion || (
                     <div className="h-5 w-2 animate-pulse bg-black"></div>
                   )}
