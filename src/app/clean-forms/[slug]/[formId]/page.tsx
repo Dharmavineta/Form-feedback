@@ -1,4 +1,4 @@
-import { getFormById } from "@/app/actions";
+import { getFormById, getPublicFormById } from "@/app/actions";
 import React from "react";
 import ResponseForm from "./_components/response-form";
 
@@ -7,7 +7,7 @@ const FormView = async ({
 }: {
   params: { slug: string; formId: string };
 }) => {
-  const formData = await getFormById(params.formId);
+  const formData = await getPublicFormById(params.formId);
   return (
     <div
       className="min-h-screen flex items-center justify-center"

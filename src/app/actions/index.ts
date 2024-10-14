@@ -18,15 +18,12 @@ import { revalidatePath } from "next/cache";
 import { desc, eq } from "drizzle-orm";
 import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
 import { streamText } from "ai";
-import { ReactNode } from "react";
 import { createStreamableValue } from "ai/rsc";
 
-// Initialize Gemini AI
 const genAI = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY as string,
 });
 
-// Update the FormInputType to match the schema
 type FormInputType = Omit<NewFormType, "userId"> & {
   questions: (Omit<NewQuestionType, "formId" | "order"> & {
     options?: QuestionOption[] | null;
@@ -376,5 +373,35 @@ export async function updateExistingForm(
   } catch (error) {
     console.error("Failed to update form:", error);
     throw new Error("Failed to update form");
+  }
+}
+
+export async function getPublicFormById(formId: string) {
+  try {
+    const form = await db.query.forms.findFirst({
+      where: eq(forms.id, formId),
+      with: {
+        questions: {
+          orderBy: [questions.order],
+        },
+      },
+    });
+
+    if (!form) {
+      throw new Error("Form not found");
+    }
+
+    // Only return the form if it's published
+    if (!form.isPublished) {
+      throw new Error("Form is not published");
+    }
+
+    // Remove sensitive information
+    const { userId, ...publicForm } = form;
+
+    return publicForm;
+  } catch (error) {
+    console.error("Failed to fetch public form:", error);
+    throw new Error("Failed to fetch public form");
   }
 }

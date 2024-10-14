@@ -20,7 +20,7 @@ import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-type FormDataType = FormType & { questions: QuestionType[] };
+type FormDataType = Omit<FormType, "userId"> & { questions: QuestionType[] };
 
 const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   const {
@@ -55,7 +55,6 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     setIsRephrasing(true);
     const currentQuestion = form.questions[currentQuestionIndex];
 
-    // Build context from conversation history
     const context = conversationHistory
       .map(
         ({ question, answer }) => `Question: "${question}" Answer: "${answer}"`

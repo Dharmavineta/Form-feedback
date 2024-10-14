@@ -7,7 +7,7 @@ import {
 } from "@/app/actions";
 
 interface ResponseState {
-  form: (FormType & { questions: QuestionType[] }) | null;
+  form: (Omit<FormType, "userId"> & { questions: QuestionType[] }) | null;
   currentQuestionIndex: number;
   rephrasedQuestions: string[];
   answers: NewAnswerType[];
@@ -16,7 +16,9 @@ interface ResponseState {
   responseId: string | null;
   conversationHistory: { question: string; answer: string }[];
 
-  setForm: (form: FormType & { questions: QuestionType[] }) => void;
+  setForm: (
+    form: Omit<FormType, "userId"> & { questions: QuestionType[] }
+  ) => void;
   initializeResponse: () => Promise<void>;
   addRephrasedQuestion: (rephrased: string) => void;
   saveAnswer: (answer: Omit<NewAnswerType, "responseId">) => Promise<void>;
