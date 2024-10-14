@@ -6,6 +6,12 @@ import { DataTable } from "./_components/data-table/data-table";
 import { columns } from "./_components/data-table/columns";
 import { getForms } from "@/app/actions";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Dashboard = async () => {
   const forms = await getForms();
@@ -14,19 +20,34 @@ const Dashboard = async () => {
     <div className="space-y-4 p-5">
       <div className="flex justify-between items-center ">
         <h1 className="text-xl font-bold">Dashboard</h1>
-        <Link href="/forms/create">
-          <Button className="flex gap-x-2 text-xs" size={"sm"}>
-            <Plus className="w-4 h-4" />
-            Create New Form
-          </Button>
-        </Link>
+        {forms.length !== 0 && (
+          <Link href="/forms/create">
+            <Button className="flex gap-x-2 text-xs" size={"sm"}>
+              <Plus className="w-4 h-4" />
+              Create New Form
+            </Button>
+          </Link>
+        )}
       </div>
       {forms.length === 0 ? (
-        <div className="text-center py-10">
-          <p className="text-gray-500">No forms created yet.</p>
-          <Link href="/forms/create">
-            <Button className="mt-4">Create Your First Form</Button>
-          </Link>
+        <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+          <div className="text-center">
+            <p className="text-gray-400 text-sm">No forms created yet.</p>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Link href="/forms/create">
+                    <Button size={"icon"} className="mt-4 rounded-full">
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Create New Form</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       ) : (
         <DataTable columns={columns} data={forms} />
