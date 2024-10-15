@@ -1,6 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import React, { useState } from "react";
+import React from "react";
+import { useFormStore } from "@/app/store";
 
 const ColorInput = () => {
   const colors = [
@@ -14,7 +15,9 @@ const ColorInput = () => {
     { id: 8, code: "#eaf4f4" },
     { id: 9, code: "#e2eafc" },
   ];
-  const [color, setColor] = useState("#FFFFFFF");
+
+  const { backgroundColor, setBackgroundColor } = useFormStore();
+
   return (
     <div className="px-5 mt-10 w-full">
       <div className="flex flex-col gap-y-4">
@@ -22,14 +25,14 @@ const ColorInput = () => {
           Background Color For your Form
         </Label>
         <div className="grid grid-cols-3 gap-y-5 place-items-center">
-          {colors.map((c, i) => (
+          {colors.map((c) => (
             <div
-              style={{ backgroundColor: `${c.code}` }}
+              style={{ backgroundColor: c.code }}
               key={c.id}
-              onClick={() => setColor(c.code)}
+              onClick={() => setBackgroundColor(c.code)}
               className={cn(
-                `w-10 cursor-pointer h-10 rounded-full`,
-                color === c.code && "border border-black"
+                "w-10 cursor-pointer h-10 rounded-full",
+                backgroundColor === c.code && "border-2 border-black"
               )}
             ></div>
           ))}
