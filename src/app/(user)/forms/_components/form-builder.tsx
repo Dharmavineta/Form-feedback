@@ -39,6 +39,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
     saveForm,
     onDragEnd,
     initializeFormData,
+    backgroundColor,
   } = useFormStore();
   const router = useRouter();
 
@@ -128,7 +129,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
       description: formDescription,
       isPublished: formData.isPublished,
       font: formData.font || "Arial", // Use existing font or default to "Arial"
-      backgroundColor: formData.backgroundColor || "#FFFFFF", // Use existing backgroundColor or default to white
+      backgroundColor: backgroundColor || "#FFFFFF", // Use existing backgroundColor or default to white
       questions: formQuestions.map((q) => ({
         questionText: q.questionText,
         questionType: q.questionType,

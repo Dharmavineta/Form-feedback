@@ -367,6 +367,11 @@ export async function updateExistingForm(
     throw new Error("Unauthorized");
   }
 
+  console.log(
+    input.backgroundColor,
+    "This is the background color from server action"
+  );
+
   try {
     return await db.transaction(async (tx) => {
       // Update the form

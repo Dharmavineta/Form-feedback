@@ -39,10 +39,14 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     updateConversationHistory,
   } = useResponseStore();
 
+  console.log(
+    formData.backgroundColor,
+    "This is the formData background color"
+  );
+
   const [isRephrasing, setIsRephrasing] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
   const [streamedQuestion, setStreamedQuestion] = useState<string>("");
-  console.log(formData, "This is the formDATA bingo dingo dingo");
 
   useEffect(() => {
     setForm(formData);

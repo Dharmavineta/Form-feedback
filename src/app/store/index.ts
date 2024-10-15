@@ -215,14 +215,14 @@ export const useFormStore = create<FormState>((set, get) => ({
     const formData = {
       title: formName,
       description: formDescription,
+      font,
+      backgroundColor,
       questions: formQuestions.map((q) => ({
         questionText: q.questionText,
         questionType: q.questionType,
         required: q.required,
         options: q.options,
       })),
-      font,
-      backgroundColor,
     };
 
     try {

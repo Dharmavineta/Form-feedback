@@ -18,6 +18,11 @@ const ColorInput = () => {
 
   const { backgroundColor, setBackgroundColor } = useFormStore();
 
+  const handleColorChange = (color: string) => {
+    setBackgroundColor(color);
+    console.log("Color changed to:", color);
+  };
+
   return (
     <div className="px-5 mt-10 w-full">
       <div className="flex flex-col gap-y-4">
@@ -29,7 +34,7 @@ const ColorInput = () => {
             <div
               style={{ backgroundColor: c.code }}
               key={c.id}
-              onClick={() => setBackgroundColor(c.code)}
+              onClick={() => handleColorChange(c.code)}
               className={cn(
                 "w-10 cursor-pointer h-10 rounded-full",
                 backgroundColor === c.code && "border-2 border-black"

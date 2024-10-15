@@ -8,12 +8,15 @@ const FormView = async ({
   params: { slug: string; formId: string };
 }) => {
   const formData = await getPublicFormById(params.formId);
-  console.log(params.formId, "This is the formId");
+  console.log(
+    formData.backgroundColor,
+    "This is the formData background color binbo binbo binob inbo binb;oi bn;lja"
+  );
   return (
     <div
       className="min-h-screen flex items-center justify-center"
       style={{
-        backgroundColor: `${formData.backgroundColor}`,
+        background: `${formData.backgroundColor}`,
       }}
     >
       <ResponseForm formData={formData} />
