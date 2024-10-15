@@ -11,8 +11,8 @@ const Sidebar = () => {
   const pathname = usePathname();
   const links = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
-    { name: "Analytics", href: "/analytics", icon: BarChart },
-    { name: "Subscription", href: "/subscription", icon: CreditCard },
+    { name: "Analytics", href: "/", icon: BarChart },
+    { name: "Subscription", href: "/", icon: CreditCard },
   ];
 
   return (
