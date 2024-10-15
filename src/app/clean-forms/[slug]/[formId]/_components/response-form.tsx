@@ -322,11 +322,11 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
 
   return (
     <div className="min-h-screen flex flex-col p-6 w-full font-sans">
-      <div className="w-full flex text-left flex-col">
+      <div className="w-full flex text-left flex-col p-5 md:px-12">
         <h2 className="text-3xl font-bold mb-2">{form.title}</h2>
         <p className="text-lg mb-12">{form.description}</p>
       </div>
-      <div className="flex-1 flex mt-40 justify-center">
+      <div className="flex-1 flex justify-center mt-10 px-5">
         {currentQuestionIndex < form.questions.length ? (
           <div className="flex flex-col items-center w-full max-w-2xl ">
             <AnimatePresence mode="wait">
