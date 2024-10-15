@@ -55,6 +55,8 @@ export const forms = pgTable("forms", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   publishedAt: timestamp("published_at"),
+  font: varchar("font", { length: 100 }).default("Arial"),
+  backgroundColor: text("background_color").default("#FFFFFF"),
 });
 
 export const formsRelations = relations(forms, ({ one, many }) => ({

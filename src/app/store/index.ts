@@ -15,6 +15,8 @@ interface FormState {
   formDescription: string;
   formQuestions: QuestionType[];
   newOptionInputs: Record<string, string>;
+  font: string;
+  backgroundColor: string;
 
   initializeFormData: (
     formData: (FormType & { questions: QuestionType[] }) | null
@@ -45,6 +47,8 @@ interface FormState {
   ) => void;
   saveForm: () => Promise<{ message: string; formId: string }>;
   onDragEnd: (result: DropResult) => void;
+  setFont: (font: string) => void;
+  setBackgroundColor: (color: string) => void;
 }
 
 export const useFormStore = create<FormState>((set, get) => ({
@@ -53,6 +57,8 @@ export const useFormStore = create<FormState>((set, get) => ({
   formDescription: "",
   formQuestions: [],
   newOptionInputs: {},
+  font: "Arial",
+  backgroundColor: "#FFFFFF",
 
   initializeFormData: (
     formData: (FormType & { questions: QuestionType[] }) | null
@@ -65,6 +71,8 @@ export const useFormStore = create<FormState>((set, get) => ({
           formDescription: "",
           formQuestions: [],
           newOptionInputs: {},
+          font: "Arial",
+          backgroundColor: "#FFFFFF",
         };
       }
 
@@ -74,6 +82,8 @@ export const useFormStore = create<FormState>((set, get) => ({
         formDescription: formData.description || "",
         formQuestions: formData.questions,
         newOptionInputs: {},
+        font: formData.font || "Arial",
+        backgroundColor: formData.backgroundColor || "#FFFFFF",
       };
     }),
 
@@ -200,7 +210,8 @@ export const useFormStore = create<FormState>((set, get) => ({
     })),
 
   saveForm: async () => {
-    const { formName, formDescription, formQuestions } = get();
+    const { formName, formDescription, formQuestions, font, backgroundColor } =
+      get();
     const formData = {
       title: formName,
       description: formDescription,
@@ -210,6 +221,8 @@ export const useFormStore = create<FormState>((set, get) => ({
         required: q.required,
         options: q.options,
       })),
+      font,
+      backgroundColor,
     };
 
     try {
@@ -259,4 +272,7 @@ export const useFormStore = create<FormState>((set, get) => ({
       });
     }
   },
+
+  setFont: (font) => set({ font }),
+  setBackgroundColor: (color) => set({ backgroundColor: color }),
 }));

@@ -127,6 +127,8 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
       title: formName,
       description: formDescription,
       isPublished: formData.isPublished,
+      font: formData.font || "Arial", // Use existing font or default to "Arial"
+      backgroundColor: formData.backgroundColor || "#FFFFFF", // Use existing backgroundColor or default to white
       questions: formQuestions.map((q) => ({
         questionText: q.questionText,
         questionType: q.questionType,

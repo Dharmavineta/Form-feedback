@@ -28,6 +28,8 @@ type FormInputType = Omit<NewFormType, "userId"> & {
   questions: (Omit<NewQuestionType, "formId" | "order"> & {
     options?: QuestionOption[] | null;
   })[];
+  font: string;
+  backgroundColor: string;
 };
 
 export async function aiGenerateForm(input: string) {
@@ -55,6 +57,8 @@ export async function createForm(input: FormInputType) {
           title: input.title,
           description: input.description,
           isPublished: input.isPublished ?? false,
+          font: input.font,
+          backgroundColor: input.backgroundColor,
         })
         .returning();
 
@@ -156,6 +160,8 @@ export async function deleteForm(formId: string) {
 
 type UpdateFormInput = Partial<Omit<NewFormType, "id" | "userId">> & {
   id: string;
+  font?: string;
+  backgroundColor?: string;
 };
 
 export async function updateForm(input: UpdateFormInput) {
@@ -371,6 +377,8 @@ export async function updateExistingForm(
           description: input.description,
           isPublished: input.isPublished ?? false,
           updatedAt: new Date(),
+          font: input.font,
+          backgroundColor: input.backgroundColor,
         })
         .where(eq(forms.id, input.id));
 
