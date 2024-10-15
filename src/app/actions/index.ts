@@ -226,15 +226,6 @@ export async function rephraseQuestion(question: string, context: string = "") {
 
 Each question should be framed in such a way that it acknowledges the user's prior answers and leads smoothly into the next inquiry. The questions should be longer, conversational, and make the user feel like they are part of a friendly dialogue rather than a rigid survey.
 
-Example context:
-
-Previous question: "What is your favorite hobby?"
-User's answer: "I enjoy painting."
-Example of how to rephrase the next question:
-
-"That's wonderful! Painting can be such a relaxing and creative outlet. Now, thinking about how you spend your weekends, do you typically find time to pursue your hobby, or are your weekends packed with other activities?"
-Now, given the following previous questions and answers, rephrase the next question:
-
 Previous questions and answers:
 ${context}
 

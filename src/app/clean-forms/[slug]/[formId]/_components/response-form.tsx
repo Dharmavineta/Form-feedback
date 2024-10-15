@@ -47,6 +47,7 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   const [isRephrasing, setIsRephrasing] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
   const [streamedQuestion, setStreamedQuestion] = useState<string>("");
+  const [visibleChars, setVisibleChars] = useState(0);
 
   useEffect(() => {
     setForm(formData);
@@ -299,6 +300,22 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     }
   };
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (streamedQuestion) {
+      timer = setInterval(() => {
+        setVisibleChars((prev) => {
+          if (prev < streamedQuestion.length) {
+            return prev + 1;
+          }
+          clearInterval(timer);
+          return prev;
+        });
+      }, 30); // Adjust this value to control the typing speed
+    }
+    return () => clearInterval(timer);
+  }, [streamedQuestion]);
+
   if (!form || isLoading) {
     return <div>Loading...</div>;
   }
@@ -322,8 +339,19 @@ const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                 transition={{ duration: 0.5 }}
                 className="mb-6 w-full flex flex-col gap-y-4"
               >
-                <h3 className="text-2xl font-semibold mb-4 text-start  pb-2">
-                  {streamedQuestion || (
+                <h3 className="text-2xl font-semibold mb-4 text-start pb-2">
+                  {streamedQuestion ? (
+                    streamedQuestion.split("").map((char, index) => (
+                      <motion.span
+                        key={index}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: index < visibleChars ? 1 : 0 }}
+                        transition={{ duration: 0.1 }}
+                      >
+                        {char}
+                      </motion.span>
+                    ))
+                  ) : (
                     <div className="h-5 w-2 animate-pulse bg-black"></div>
                   )}
                 </h3>
