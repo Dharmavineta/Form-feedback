@@ -29,15 +29,15 @@ const ColorInput = () => {
         <Label className="font-bold text-sm">
           Background Color For your Form
         </Label>
-        <div className="grid grid-cols-3 gap-y-5 place-items-center">
+        <div className="grid grid-cols-4 gap-y-5 place-items-center">
           {colors.map((c) => (
             <div
               style={{ backgroundColor: c.code }}
               key={c.id}
               onClick={() => handleColorChange(c.code)}
               className={cn(
-                "w-10 cursor-pointer h-10 rounded-full",
-                backgroundColor === c.code && "border-2 border-black"
+                "w-10 cursor-pointer h-10 rounded-lg ",
+                backgroundColor === c.code && "border-2 border-black "
               )}
             ></div>
           ))}
