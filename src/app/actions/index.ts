@@ -486,3 +486,62 @@ export async function getPublicFormById(formId: string) {
     throw new Error("Failed to fetch public form");
   }
 }
+
+export async function generateAIObject(input: string) {
+  const prompt = `
+    Generate a form based on the following user input: "${input}". 
+    Ensure that the form schema adheres to the topic described in the input.
+    For questions with questionType as "radio", "checkbox", or "select", include a non-empty options array, where each option has an id, text, and order.
+    For other question types ("text", "date", "time"), the options array can be empty.
+  `;
+  const formSchema = z.object({
+    title: z.string(),
+    description: z.string(),
+    font: z.string().default("Arial"),
+    backgroundColor: z.string().default("#FFFFFF"),
+    questions: z.array(
+      z.object({
+        questionText: z.string(),
+        questionType: z.enum([
+          "text",
+          "radio",
+          "checkbox",
+          "select",
+          "date",
+          "time",
+        ]),
+        order: z.number(),
+        required: z.boolean(),
+        options: z
+          .array(
+            z.object({
+              id: z.string(),
+              text: z.string(),
+              order: z.number(),
+            })
+          )
+          .optional(), // Allows for an empty array
+      })
+    ),
+  });
+
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    const { object } = await generateObject({
+      model: google("gemini-1.5-pro-002"),
+      schema: formSchema,
+      output: "object",
+      prompt: prompt,
+    });
+
+    return object;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+}

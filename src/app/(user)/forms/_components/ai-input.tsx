@@ -1,4 +1,4 @@
-import { generateAIForm } from "@/app/actions";
+import { generateAIForm, generateAIObject } from "@/app/actions";
 import { useFormStore } from "@/app/store";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -28,40 +28,40 @@ const AiInput = () => {
       setDisabled(false);
       return;
     }
+    const formObject = await generateAIObject(input);
+    console.log(formObject);
 
-    try {
-      const formString = await generateAIForm(input);
-      console.log(formString, "This is the string");
-      const formObject = JSON.parse(formString as string);
-      console.log(formObject, "This is the object");
+    // try {
+    //   const formString = await generateAIForm(input);
+    //   const formObject = JSON.parse(formString as string);
 
-      const formattedQuestions = formObject?.questions?.map(
-        (q: Partial<QuestionType>, i: number) => ({
-          ...q,
-          id: uuidv4(),
-          options: q.options
-            ? q.options.map((opt: QuestionOption) => ({ ...opt, id: uuidv4() }))
-            : [],
-        })
-      );
+    //   const formattedQuestions = formObject?.questions?.map(
+    //     (q: Partial<QuestionType>, i: number) => ({
+    //       ...q,
+    //       id: uuidv4(),
+    //       options: q.options
+    //         ? q.options.map((opt: QuestionOption) => ({ ...opt, id: uuidv4() }))
+    //         : [],
+    //     })
+    //   );
 
-      const formattedForm = {
-        title: formObject.title,
-        description: formObject.description,
-        font: formObject.font,
-        backgroundColor: formObject.backgroundColor,
-        questions: formattedQuestions,
-      };
+    //   const formattedForm = {
+    //     title: formObject.title,
+    //     description: formObject.description,
+    //     font: formObject.font,
+    //     backgroundColor: formObject.backgroundColor,
+    //     questions: formattedQuestions,
+    //   };
 
-      initializeFormData(formattedForm, true);
+    //   initializeFormData(formattedForm, true);
 
-      toast.success("AI form generated successfully!");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to generate AI form");
-    } finally {
-      setDisabled(false);
-    }
+    //   toast.success("AI form generated successfully!");
+    // } catch (error) {
+    //   console.error(error);
+    //   toast.error("Failed to generate AI form");
+    // } finally {
+    //   setDisabled(false);
+    // }
   };
 
   return (
