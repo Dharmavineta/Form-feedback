@@ -17,9 +17,9 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { desc, eq } from "drizzle-orm";
 import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
-import { streamText } from "ai";
+import { generateObject, generateText, streamText } from "ai";
 import { createStreamableValue } from "ai/rsc";
-
+import { z } from "zod";
 const genAI = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY as string,
 });
@@ -243,7 +243,7 @@ Please provide only the rephrased question in your response.`;
 
   (async () => {
     const { textStream } = await streamText({
-      model: genAI("gemini-1.5-flash-8b"),
+      model: google("gemini-1.5-pro-002"),
       prompt: prompt,
     });
 
@@ -255,6 +255,57 @@ Please provide only the rephrased question in your response.`;
   })();
 
   return { output: stream.value };
+}
+
+export async function generateAIForm(input: string) {
+  const prompt = `Generate a form object that strictly adheres to the following schema:
+  {
+    "title": "string",
+    "description": "string",
+    "isPublished": "boolean",
+    "font": "string",
+    "backgroundColor": "string",
+    "questions": [
+      {
+        "questionText": "string",
+        "questionType": "text | radio | checkbox | select | date | time",
+        "order": "number",
+        "required": "boolean",
+        "options": [
+          {
+            "id": "string",
+            "text": "string",
+            "order": "number"
+          }
+        ] | []
+      }
+    ]
+  }
+
+The rules for generating the options array:
+  - If the questionType is "radio", "checkbox", or "select", generate an array of option objects with "id", "text", and "order" as shown in the schema.
+  - If the questionType is "text", "date", or "time", the options array must be an empty array [].
+
+Use this input for context: "${input}".
+The generated form should follow this schema precisely, including the presence of the options array for each question, even if it is empty.`;
+
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    const response = await generateText({
+      model: google("gemini-1.5-pro-002"),
+      prompt: prompt,
+    });
+
+    return response.text;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
 }
 
 export async function initializeResponse(formId: string) {

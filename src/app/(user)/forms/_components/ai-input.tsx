@@ -1,14 +1,33 @@
+import { generateAIForm } from "@/app/actions";
 import { useFormStore } from "@/app/store";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SparklesIcon } from "lucide-react";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 const AiInput = () => {
-  const [disabled, setDisabled] = useState(true);
+  const [disabled, setDisabled] = useState(false);
   const [input, setInput] = useState<string>("");
   const { formId } = useFormStore();
+
+  const handleAIForm = async () => {
+    setDisabled(true);
+    if (input.trim().length < 20) {
+      toast.error("Please enter a valid query");
+    }
+
+    try {
+      const formString = await generateAIForm(input);
+      const object = JSON.parse(formString as string);
+      console.log(object);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setDisabled(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-y-5">
@@ -30,9 +49,10 @@ const AiInput = () => {
       </div>
       <div className="flex justify-end pr-5">
         <Button
-          disabled={disabled}
+          disabled={input.trim().length < 15 || disabled}
           size={"sm"}
-          className="flex gap-x-2 bg-stone-500 "
+          className="flex gap-x-2 "
+          onClick={handleAIForm}
         >
           Coming Soon
           <SparklesIcon className="w-4 h-4" />
