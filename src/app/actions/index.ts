@@ -287,7 +287,9 @@ The rules for generating the options array:
   - If the questionType is "text", "date", or "time", the options array must be an empty array [].
 
 Use this input for context: "${input}".
-The generated form should follow this schema precisely, including the presence of the options array for each question, even if it is empty.`;
+The generated form should follow this schema precisely, including the presence of the options array for each question, even if it is empty.
+
+**Important**: Return only the plain JSON object. Do not include any markdown formatting, such as \`\`\`json, or any other text.`;
 
   const { userId } = auth();
 
