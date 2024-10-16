@@ -75,7 +75,7 @@ const AiInput = () => {
           className="flex gap-x-2 "
           onClick={handleAIForm}
         >
-          Create Form
+          Generate Form
           <SparklesIcon className="w-4 h-4" />
         </Button>
       </div>

@@ -299,7 +299,7 @@ The generated form should follow this schema precisely, including the presence o
 
   try {
     const response = await generateText({
-      model: google("gemini-1.5-pro-002"),
+      model: genAI("gemini-1.5-flash-002"),
       prompt: prompt,
     });
 
