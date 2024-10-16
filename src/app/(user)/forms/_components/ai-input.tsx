@@ -7,6 +7,13 @@ import { SparklesIcon } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { useUser } from "@clerk/nextjs";
+import { v4 as uuidv4 } from "uuid";
+import {
+  FormType,
+  QuestionType,
+  QuestionOption,
+  questionTypeEnum,
+} from "@/db/schema";
 
 const AiInput = () => {
   const [disabled, setDisabled] = useState(false);
@@ -24,22 +31,35 @@ const AiInput = () => {
 
     try {
       const formString = await generateAIForm(input);
-      const object = JSON.parse(formString as string);
+      console.log(formString, "This is the string");
+      const formObject = JSON.parse(formString as string);
+      console.log(formObject, "This is the object");
 
-      // Initialize the form data with the AI-generated object
-      initializeFormData({
-        id: user?.id as string,
-        title: object.title,
-        description: object.description,
-        isPublished: object.isPublished,
-        font: object.font,
-        backgroundColor: object.backgroundColor,
-        questions: object.questions,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userId: "",
+      const formattedQuestions = formObject?.questions?.map(
+        (q: Partial<QuestionType>, i: number) => ({
+          ...q,
+          id: uuidv4(),
+          options: q.options
+            ? q.options.map((opt: QuestionOption) => ({ ...opt, id: uuidv4() }))
+            : [],
+        })
+      );
+
+      const formattedForm = {
+        id: "",
+        title: formObject.title,
+        description: formObject.description,
+        font: formObject.font,
+        backgroundColor: formObject.backgroundColor,
+        questions: formattedQuestions,
+        createdAt: null,
+        updatedAt: null,
+        userId: user?.id as string,
         publishedAt: null,
-      });
+        isPublished: null,
+      };
+
+      initializeFormData(formattedForm);
 
       toast.success("AI form generated successfully!");
     } catch (error) {

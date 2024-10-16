@@ -61,7 +61,8 @@ export const useFormStore = create<FormState>((set, get) => ({
   backgroundColor: "#FFFFFF",
 
   initializeFormData: (
-    formData: (FormType & { questions: QuestionType[] }) | null
+    formData: (FormType & { questions: QuestionType[] }) | null,
+    isAIForm: boolean = false
   ) =>
     set(() => {
       if (!formData) {
@@ -73,6 +74,17 @@ export const useFormStore = create<FormState>((set, get) => ({
           newOptionInputs: {},
           font: "Arial",
           backgroundColor: "#FFFFFF",
+        };
+      }
+      if (isAIForm) {
+        return {
+          formId: null,
+          formName: formData.title,
+          formDescription: formData.description || "",
+          formQuestions: formData.questions,
+          newOptionInputs: {},
+          font: formData.font || "Arial",
+          backgroundColor: formData.backgroundColor || "#FFFFFF",
         };
       }
 
