@@ -46,20 +46,14 @@ const AiInput = () => {
       );
 
       const formattedForm = {
-        id: "",
         title: formObject.title,
         description: formObject.description,
         font: formObject.font,
         backgroundColor: formObject.backgroundColor,
         questions: formattedQuestions,
-        createdAt: null,
-        updatedAt: null,
-        userId: user?.id as string,
-        publishedAt: null,
-        isPublished: null,
       };
 
-      initializeFormData(formattedForm);
+      initializeFormData(formattedForm, true);
 
       toast.success("AI form generated successfully!");
     } catch (error) {

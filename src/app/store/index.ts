@@ -19,7 +19,8 @@ interface FormState {
   backgroundColor: string;
 
   initializeFormData: (
-    formData: (FormType & { questions: QuestionType[] }) | null
+    formData: Partial<FormType & { questions: QuestionType[] }> | null,
+    isAIForm?: boolean
   ) => void;
   addNewQuestion: (questionText?: string) => void;
   updateQuestionText: (id: string, text: string) => void;
@@ -61,7 +62,7 @@ export const useFormStore = create<FormState>((set, get) => ({
   backgroundColor: "#FFFFFF",
 
   initializeFormData: (
-    formData: (FormType & { questions: QuestionType[] }) | null,
+    formData: Partial<FormType & { questions: QuestionType[] }> | null,
     isAIForm: boolean = false
   ) =>
     set(() => {
