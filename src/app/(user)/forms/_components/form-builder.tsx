@@ -149,13 +149,24 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
 
   return (
     <div className="px-10 md:px-10 lg:px-20 mx-auto min-h-[calc(100vh-3.6rem)] flex flex-col ">
-      <div className="flex justify-start w-full pt-4">
+      <div className="flex justify-between w-full pt-4">
         <Link
           className="text-sm  hover:underline flex items-center justify-center"
           href={"/dashboard"}
         >
           &larr; Dashboard
         </Link>
+        <div className="flex text-sm items-center gap-x-2">
+          <h1>
+            Theme<strong>:</strong>
+          </h1>
+          <div
+            style={{ background: `${backgroundColor}` }}
+            className="w-5 h-5 font-bold"
+          >
+            {backgroundColor === "#FFFFFF" && "white"}
+          </div>
+        </div>
       </div>
       {/* Form Name and Description */}
       <div className="bg-white w-full rounded-lg pt-8 mb-14 md:w-[90%]">
