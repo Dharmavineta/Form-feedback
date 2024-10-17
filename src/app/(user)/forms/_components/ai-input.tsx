@@ -28,40 +28,39 @@ const AiInput = () => {
       setDisabled(false);
       return;
     }
-    const formObject = await generateAIObject(input);
-    console.log(formObject);
 
-    // try {
-    //   const formString = await generateAIForm(input);
-    //   const formObject = JSON.parse(formString as string);
+    try {
+      const formString = await generateAIForm(input);
 
-    //   const formattedQuestions = formObject?.questions?.map(
-    //     (q: Partial<QuestionType>, i: number) => ({
-    //       ...q,
-    //       id: uuidv4(),
-    //       options: q.options
-    //         ? q.options.map((opt: QuestionOption) => ({ ...opt, id: uuidv4() }))
-    //         : [],
-    //     })
-    //   );
+      const formObject = JSON.parse(formString as string);
 
-    //   const formattedForm = {
-    //     title: formObject.title,
-    //     description: formObject.description,
-    //     font: formObject.font,
-    //     backgroundColor: formObject.backgroundColor,
-    //     questions: formattedQuestions,
-    //   };
+      const formattedQuestions = formObject?.questions?.map(
+        (q: Partial<QuestionType>, i: number) => ({
+          ...q,
+          id: uuidv4(),
+          options: q.options
+            ? q.options.map((opt: QuestionOption) => ({ ...opt, id: uuidv4() }))
+            : [],
+        })
+      );
 
-    //   initializeFormData(formattedForm, true);
+      const formattedForm = {
+        title: formObject.title,
+        description: formObject.description,
+        font: formObject.font,
+        backgroundColor: formObject.backgroundColor,
+        questions: formattedQuestions,
+      };
 
-    //   toast.success("AI form generated successfully!");
-    // } catch (error) {
-    //   console.error(error);
-    //   toast.error("Failed to generate AI form");
-    // } finally {
-    //   setDisabled(false);
-    // }
+      initializeFormData(formattedForm, true);
+
+      toast.success("AI form generated successfully!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to generate AI form");
+    } finally {
+      setDisabled(false);
+    }
   };
 
   return (
