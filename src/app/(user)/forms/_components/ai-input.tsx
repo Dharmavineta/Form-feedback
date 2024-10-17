@@ -14,6 +14,7 @@ import {
   QuestionOption,
   questionTypeEnum,
 } from "@/db/schema";
+import { ZodFormType } from "@/types";
 
 const AiInput = () => {
   const [disabled, setDisabled] = useState(false);
@@ -23,16 +24,15 @@ const AiInput = () => {
 
   const handleAIForm = async () => {
     setDisabled(true);
-    if (input.trim().length < 20) {
+    if (input.trim().length < 10) {
       toast.error("Please enter a valid query");
       setDisabled(false);
       return;
     }
 
     try {
-      const formString = await generateAIForm(input);
-
-      const formObject = JSON.parse(formString as string);
+      // @ts-expect-error - fix late
+      const formObject: ZodFormType = await generateAIObject(input);
 
       const formattedQuestions = formObject?.questions?.map(
         (q: Partial<QuestionType>, i: number) => ({
@@ -52,7 +52,7 @@ const AiInput = () => {
         questions: formattedQuestions,
       };
 
-      initializeFormData(formattedForm, true);
+      initializeFormData(formattedForm as Partial<FormType>, true);
 
       toast.success("AI form generated successfully!");
     } catch (error) {

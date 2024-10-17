@@ -20,6 +20,7 @@ import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
 import { generateObject, generateText, streamText } from "ai";
 import { createStreamableValue } from "ai/rsc";
 import { z } from "zod";
+import { formSchema } from "@/types";
 const genAI = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY as string,
 });
@@ -258,38 +259,38 @@ Please provide only the rephrased question in your response.`;
 }
 
 export async function generateAIForm(input: string) {
-  const prompt = `Generate a form object that strictly adheres to the following schema:
-  {
-    "title": "string",
-    "description": "string",
-    "isPublished": "boolean",
-    "font": "string",
-    "backgroundColor": "string",
-    "questions": [
-      {
-        "questionText": "string",
-        "questionType": "text | radio | checkbox | select | date | time",
-        "order": "number",
-        "required": "boolean",
-        "options": [
-          {
-            "id": "string",
-            "text": "string",
-            "order": "number"
-          }
-        ] | []
-      }
-    ]
-  }
+  const prompt = `Generate a JSON string representation of a form object that strictly adheres to the following schema:
+{
+  "title": "string",
+  "description": "string",
+  "isPublished": "boolean",
+  "font": "string",
+  "backgroundColor": "string",
+  "questions": [
+    {
+      "questionText": "string",
+      "questionType": "text | radio | checkbox | select | date | time",
+      "order": "number",
+      "required": "boolean",
+      "options": [
+        {
+          "id": "string",
+          "text": "string",
+          "order": "number"
+        }
+      ] | []
+    }
+  ]
+}
 
 The rules for generating the options array:
-  - If the questionType is "radio", "checkbox", or "select", generate an array of option objects with "id", "text", and "order" as shown in the schema.
-  - If the questionType is "text", "date", or "time", the options array must be an empty array [].
+- If the questionType is "radio", "checkbox", or "select", generate an array of option objects with "id", "text", and "order" as shown in the schema.
+- If the questionType is "text", "date", or "time", the options array must be an empty array [].
 
 Use this input for context: "${input}".
 The generated form should follow this schema precisely, including the presence of the options array for each question, even if it is empty.
 
-**Important**: Return only the plain JSON object. Do not include any markdown formatting, such as \`\`\`json, or any other text.`;
+**Important**: Return only a valid JSON string that can be parsed into an object. Ensure that the output is a plain string that contains valid JSON with double quotes around all keys and string values. Do not return an actual JSON object. Avoid markdown formatting, code blocks, or any additional text like "Here's your response:" or "This is the object you wanted".`;
 
   const { userId } = auth();
 
@@ -299,7 +300,7 @@ The generated form should follow this schema precisely, including the presence o
 
   try {
     const response = await generateText({
-      model: google("gemini-1.5-pro-002"),
+      model: genAI("gemini-1.5-flash-8b"),
       prompt: prompt,
     });
 
@@ -490,40 +491,13 @@ export async function getPublicFormById(formId: string) {
 export async function generateAIObject(input: string) {
   const prompt = `
     Generate a form based on the following user input: "${input}". 
-    Ensure that the form schema adheres to the topic described in the input.
-    For questions with questionType as "radio", "checkbox", or "select", include a non-empty options array, where each option has an id, text, and order.
-    For other question types ("text", "date", "time"), the options array can be empty.
-  `;
-  const formSchema = z.object({
-    title: z.string(),
-    description: z.string(),
-    font: z.string().default("Arial"),
-    backgroundColor: z.string().default("#FFFFFF"),
-    questions: z.array(
-      z.object({
-        questionText: z.string(),
-        questionType: z.enum([
-          "text",
-          "radio",
-          "checkbox",
-          "select",
-          "date",
-          "time",
-        ]),
-        order: z.number(),
-        required: z.boolean(),
-        options: z
-          .array(
-            z.object({
-              id: z.string(),
-              text: z.string(),
-              order: z.number(),
-            })
-          )
-          .optional(), // Allows for an empty array
-      })
-    ),
-  });
+    Create an engaging title and description for the form that balances creativity and clarity, making it appealing without being overly artistic or too plain. 
+    If the input specifically indicates a need for creativity, then provide a more imaginative title and description.
+    
+    Ensure that the form schema strictly adheres to the following requirements:
+    - For questions with questionType as "radio", "checkbox", or "select", include a non-empty options array, where each option has an id, text, and order.
+    - For question types "text", "date", or "time", the options array can be empty.
+`;
 
   const { userId } = auth();
 
@@ -533,7 +507,7 @@ export async function generateAIObject(input: string) {
 
   try {
     const { object } = await generateObject({
-      model: google("gemini-1.5-pro-002"),
+      model: google("gemini-1.5-flash-002"),
       schema: formSchema,
       output: "object",
       prompt: prompt,

@@ -156,7 +156,7 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
         >
           &larr; Dashboard
         </Link>
-        <div className="flex text-sm items-center gap-x-2">
+        <div className="flex text-sm items-center gap-x-2 fixed right-16">
           <h1>
             Theme<strong>:</strong>
           </h1>
@@ -209,14 +209,14 @@ const FormBuilder: FC<FormBuilderProps> = ({ formData }) => {
           </TooltipProvider>
         </div>
       ) : (
-        <div>
+        <div className="pb-20">
           <DragDropContext onDragEnd={onDragEnd}>
             <QuestionList questions={formQuestions} />
           </DragDropContext>
         </div>
       )}
 
-      <div className="flex justify-end items-end mt-4 pb-10">
+      <div className="flex justify-end items-end mt-4 pb-10 fixed bottom-0 right-20">
         <Button size="sm" onClick={formData ? handleEdit : handleSaveForm}>
           {formData ? "Save Changes" : "Create Form"}
         </Button>
