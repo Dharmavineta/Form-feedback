@@ -489,18 +489,21 @@ export async function getPublicFormById(formId: string) {
 }
 
 export async function generateAIObject(input: string) {
-  const prompt = `
-    Generate a form based on the following user input: "${input}". 
-    Create an engaging title and description for the form that balances creativity and clarity, making it appealing without being overly artistic or too plain. 
-    If the input specifically indicates a need for creativity, then provide a more imaginative title and description.
+  const prompt = ` 
+  Generate a form based on the following user input: "${input}".
 
-    For the questions, generate a mix of short and detailed questions where appropriate. 
-    Ensure that questions requiring elaboration or specificity are more detailed and descriptive, while simple questions can remain brief.
-    
-    Ensure that the form schema strictly adheres to the following requirements:
-    - For questions with questionType as "radio", "checkbox", or "select", include a non-empty options array, where each option has an id, text, and order.
-    - For question types "text", "date", or "time", the options array can be empty.
-`;
+**Title and Description:**
+- Create an engaging title and description that balances creativity and clarity, making it appealing without being overly artistic or too plain. If the input specifically indicates a need for creativity, provide a more imaginative title and description.
+
+**Questions:**
+- Ensure a variety of question lengths and types, including both concise and detailed questions. For questions that require deeper thought, elaboration, or context (e.g., user preferences, decision-making, experiences), generate more descriptive and detailed questions. For straightforward inquiries (e.g., factual data, yes/no answers), keep the questions brief.
+- Maintain a mix of short and detailed questions throughout the form for better engagement.
+
+**Form Schema:**
+- For questions with "questionType" as "radio", "checkbox", or "select", include a non-empty "options" array, where each option has an "id", "text", and "order".
+- For questions with "questionType" as "text", "date", or "time", the "options" array can be empty.
+- Ensure there is a clear balance between open-ended and multiple-choice questions.
+  `;
 
   const { userId } = auth();
 
