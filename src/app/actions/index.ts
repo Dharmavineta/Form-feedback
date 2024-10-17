@@ -1,5 +1,4 @@
 "use server";
-export const maxDuration = 30;
 
 import { db } from "@/db";
 import {
