@@ -493,6 +493,9 @@ export async function generateAIObject(input: string) {
     Generate a form based on the following user input: "${input}". 
     Create an engaging title and description for the form that balances creativity and clarity, making it appealing without being overly artistic or too plain. 
     If the input specifically indicates a need for creativity, then provide a more imaginative title and description.
+
+    For the questions, generate a mix of short and detailed questions where appropriate. 
+    Ensure that questions requiring elaboration or specificity are more detailed and descriptive, while simple questions can remain brief.
     
     Ensure that the form schema strictly adheres to the following requirements:
     - For questions with questionType as "radio", "checkbox", or "select", include a non-empty options array, where each option has an id, text, and order.
