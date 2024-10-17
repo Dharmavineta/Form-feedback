@@ -244,7 +244,7 @@ Please provide only the rephrased question in your response.`;
 
   (async () => {
     const { textStream } = await streamText({
-      model: google("gemini-1.5-pro-002"),
+      model: google("gemini-1.5-flash-002"),
       prompt: prompt,
     });
 
