@@ -1,6 +1,7 @@
 import { getFormById, getPublicFormById } from "@/app/actions";
 import React from "react";
 import ResponseForm from "./_components/response-form";
+import NewResponseForm from "./_components/new-response-form";
 
 const FormView = async ({
   params,
@@ -8,10 +9,7 @@ const FormView = async ({
   params: { slug: string; formId: string };
 }) => {
   const formData = await getPublicFormById(params.formId);
-  console.log(
-    formData.backgroundColor,
-    "This is the formData background color binbo binbo binob inbo binb;oi bn;lja"
-  );
+
   return (
     <div
       className="min-h-screen flex items-center justify-center"
@@ -19,7 +17,7 @@ const FormView = async ({
         background: `${formData.backgroundColor}`,
       }}
     >
-      <ResponseForm formData={formData} />
+      <NewResponseForm formData={formData} />
     </div>
   );
 };

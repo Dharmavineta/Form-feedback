@@ -2,7 +2,7 @@ import { NewAnswerType, QuestionOption, QuestionType } from "@/db/schema";
 import { create } from "zustand";
 
 type QuestionWithOptions = QuestionType & {
-  options: QuestionOption[];
+  options: QuestionOption[] | null;
 };
 
 interface ResponseStore {
