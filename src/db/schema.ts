@@ -7,7 +7,7 @@ import {
   timestamp,
   text,
   date,
-  json,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { pgEnum } from "drizzle-orm/pg-core";
@@ -81,7 +81,7 @@ export const questions = pgTable("questions", {
   questionType: questionTypeEnum("question_type").notNull(),
   order: integer("order").notNull(),
   required: boolean("required").default(false),
-  options: json("options").$type<QuestionOption[]>(),
+  options: jsonb("options").$type<QuestionOption[]>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
