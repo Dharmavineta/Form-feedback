@@ -25,6 +25,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   const [streamedData, setStreamedData] = useState<string | "">("");
   const [formAnswer, setFormAnswer] = useState<string | "">("");
   const [isStreamComplete, setIsStreamComplete] = useState<boolean>(false);
+
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -38,8 +39,8 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       y: 0,
       scale: 1,
       transition: {
-        delay: i * 0.1,
-        duration: 0.5,
+        delay: i * 0.5,
+        duration: 1,
         ease: "easeOut",
       },
     }),
@@ -234,7 +235,6 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       answerText: formAnswer,
     });
     incrementQuestionIndex();
-    setIsStreamComplete(false);
   };
 
   return (
@@ -245,10 +245,11 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
             streamedData.split("").map((char, index) => (
               <motion.span
                 key={index}
-                initial={{ opacity: 0 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{
                   opacity: 1,
-                  transition: { duration: 2 },
+                  y: 0,
+                  transition: { duration: 1 },
                 }}
                 transition={{ duration: 0.1 }}
               >
@@ -260,7 +261,9 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
           )}
         </h1>
       </div>
-      <AnimatePresence mode="wait">{renderQuestionInput()}</AnimatePresence>
+      <AnimatePresence mode="wait">
+        {isStreamComplete && renderQuestionInput()}
+      </AnimatePresence>
       <Button onClick={handleSaveAnswer}>Next Question</Button>
     </div>
   );
