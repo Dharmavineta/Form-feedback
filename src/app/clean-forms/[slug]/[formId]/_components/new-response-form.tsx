@@ -197,7 +197,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                   variants={optionVariants}
                   initial="hidden"
                   animate="visible"
-                  className="flex items-center space-x-2 mb-2"
+                  className="flex items-center space-x-2 mb-2 md:w-[512px] md:min-w-[672px]"
                 >
                   <RadioGroupItem value={option.text} id={option.id} />
                   <Label htmlFor={option.id} className="font-medium text-sm">
