@@ -3,7 +3,7 @@ import { useResponseStore } from "@/app/store/new-res-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormType, QuestionType } from "@/db/schema";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,72 +22,149 @@ import { toast } from "sonner";
 type FormDataType = Omit<FormType, "userId"> & { questions: QuestionType[] };
 
 const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
-  const [streamedData, setStreamedData] = useState<string | "">("");
-  const [formAnswer, setFormAnswer] = useState<string | "">("");
+  const [currentText, setCurrentText] = useState<string>("");
+  const [formAnswer, setFormAnswer] = useState<string>("");
   const [isStreamComplete, setIsStreamComplete] = useState<boolean>(false);
+  const [showOptions, setShowOptions] = useState<boolean>(false);
+  const [selectedCheckboxes, setSelectedCheckboxes] = useState<string[]>([]);
+  const animationRef = useRef<{ cancel: boolean }>({ cancel: false });
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.5 } },
   };
 
   const optionVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    hidden: { opacity: 0, x: -20 },
     visible: (i: number) => ({
       opacity: 1,
-      y: 0,
-      scale: 1,
+      x: 0,
       transition: {
-        delay: i * 0.5,
-        duration: 1,
+        delay: i * 0.1,
+        duration: 0.5,
         ease: "easeOut",
       },
     }),
-    exit: (i: number) => ({
-      opacity: 0,
-      y: -10,
-      scale: 0.95,
-      transition: {
-        delay: i * 0.05,
-        duration: 0.3,
-        ease: "easeIn",
-      },
-    }),
+  };
+
+  const {
+    setFormQuestions,
+    currentQuestionIndex,
+    formQuestions,
+    incrementQuestionIndex,
+    addAnswer,
+  } = useResponseStore();
+
+  useEffect(() => {
+    setFormQuestions(formData.questions);
+  }, [formData.questions, setFormQuestions]);
+
+  const animateText = async (text: string, startIndex: number) => {
+    if (!text) return;
+
+    for (let i = startIndex + 1; i <= text.length; i++) {
+      if (animationRef.current.cancel) break;
+      setCurrentText(text.slice(0, i));
+      await new Promise((resolve) => setTimeout(resolve, 30));
+    }
+  };
+
+  useEffect(() => {
+    const currentRef = animationRef.current;
+    currentRef.cancel = false;
+
+    const rephraseCurrentQuestion = async () => {
+      if (!formQuestions[currentQuestionIndex]) return;
+
+      try {
+        setShowOptions(false);
+        setCurrentText("");
+        setFormAnswer("");
+        setSelectedCheckboxes([]);
+        setIsStreamComplete(false);
+
+        const { output } = await rephraseQuestion(
+          formQuestions[currentQuestionIndex].questionText,
+          "no context"
+        );
+
+        let accumulatedText = "";
+        for await (const delta of readStreamableValue(output)) {
+          if (currentRef.cancel) return;
+          accumulatedText += delta;
+          await animateText(
+            accumulatedText,
+            accumulatedText.length - (delta?.length || 0)
+          );
+        }
+
+        if (!currentRef.cancel) {
+          setIsStreamComplete(true);
+          setTimeout(() => setShowOptions(true), 500);
+        }
+      } catch (error) {
+        console.error("Error in rephraseCurrentQuestion:", error);
+      }
+    };
+
+    rephraseCurrentQuestion();
+
+    return () => {
+      currentRef.cancel = true;
+    };
+  }, [currentQuestionIndex, formQuestions]);
+
+  const handleCheckboxChange = (optionId: string, checked: boolean) => {
+    setSelectedCheckboxes((prev) => {
+      if (checked) {
+        return [...prev, optionId];
+      } else {
+        return prev.filter((id) => id !== optionId);
+      }
+    });
+    setFormAnswer((prev) => {
+      const currentOptions = formQuestions[currentQuestionIndex].options || [];
+      const selectedOptions = currentOptions
+        .filter((opt) =>
+          checked
+            ? [...selectedCheckboxes, optionId].includes(opt.id)
+            : selectedCheckboxes
+                .filter((id) => id !== optionId)
+                .includes(opt.id)
+        )
+        .map((opt) => opt.text)
+        .join(", ");
+      return selectedOptions;
+    });
   };
 
   const renderQuestionInput = () => {
     if (!formQuestions.length) return null;
     const currentQuestion = formQuestions[currentQuestionIndex];
 
-    switch (currentQuestion.questionType) {
-      case "text":
-        return (
-          <motion.div
-            key="text-input"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={containerVariants}
-          >
-            <Input
-              type="text"
-              placeholder="Type your answer here"
-              onChange={(e) => setFormAnswer(e.target.value)}
-              className="w-full border-t-0 border-r-0 border-l-0 rounded-r-none rounded-l-none "
-            />
-          </motion.div>
-        );
-      case "radio":
-        return (
-          <motion.div
-            key="radio-group"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={containerVariants}
-          >
+    const renderInput = () => {
+      switch (currentQuestion.questionType) {
+        case "text":
+          return (
+            <motion.div
+              variants={optionVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <Input
+                type="text"
+                placeholder="Type your answer here"
+                value={formAnswer}
+                onChange={(e) => setFormAnswer(e.target.value)}
+                className="w-full border-t-0 border-r-0 border-l-0 rounded-r-none rounded-l-none"
+              />
+            </motion.div>
+          );
+
+        case "radio":
+          return (
             <RadioGroup
+              value={formAnswer}
               onValueChange={(value) => setFormAnswer(value)}
               className="grid grid-cols-1 gap-y-5"
             >
@@ -96,6 +173,8 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                   key={option.id}
                   custom={index}
                   variants={optionVariants}
+                  initial="hidden"
+                  animate="visible"
                   className="flex items-center space-x-2 mb-2"
                 >
                   <RadioGroupItem value={option.id} id={option.id} />
@@ -105,131 +184,121 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                 </motion.div>
               ))}
             </RadioGroup>
-          </motion.div>
-        );
-      case "checkbox":
-        return (
-          <motion.div
-            key="checkbox-group"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={containerVariants}
-          >
-            {currentQuestion.options?.map((option, index) => (
-              <motion.div
-                key={option.id}
-                custom={index}
-                variants={optionVariants}
-                className="flex items-center space-x-2 mb-2"
-              >
-                <Checkbox
-                  id={option.id}
-                  onCheckedChange={(checked) => {
-                    if (checked) setFormAnswer(option.text);
-                  }}
-                />
-                <Label htmlFor={option.id}>{option.text}</Label>
-              </motion.div>
-            ))}
-          </motion.div>
-        );
-      case "select":
-        return (
-          <motion.div
-            key="select"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={containerVariants}
-          >
-            <Select onValueChange={(value) => setFormAnswer(value)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select an option" />
-              </SelectTrigger>
-              <SelectContent>
-                {currentQuestion.options?.map((option) => (
-                  <SelectItem key={option.id} value={option.id}>
+          );
+
+        case "checkbox":
+          return (
+            <div className="space-y-4">
+              {currentQuestion.options?.map((option, index) => (
+                <motion.div
+                  key={option.id}
+                  custom={index}
+                  variants={optionVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="flex items-center space-x-2"
+                >
+                  <Checkbox
+                    id={option.id}
+                    checked={selectedCheckboxes.includes(option.id)}
+                    onCheckedChange={(checked) =>
+                      handleCheckboxChange(option.id, checked as boolean)
+                    }
+                  />
+                  <Label htmlFor={option.id} className="font-medium text-sm">
                     {option.text}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </motion.div>
-        );
-      case "date":
-        return (
-          <motion.div
-            key="date"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={containerVariants}
-          >
-            <Input
-              type="date"
-              onChange={(e) => setFormAnswer(e.target.value)}
-              className="w-full"
-            />
-          </motion.div>
-        );
-      case "time":
-        return (
-          <motion.div
-            key="time"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={containerVariants}
-          >
-            <Input
-              type="time"
-              onChange={(e) => setFormAnswer(e.target.value)}
-              className="w-full"
-            />
-          </motion.div>
-        );
-      default:
-        return null;
-    }
-  };
+                  </Label>
+                </motion.div>
+              ))}
+            </div>
+          );
 
-  const {
-    setFormQuestions,
-    currentQuestionIndex,
-    formQuestions,
-    incrementQuestionIndex,
-    addAnswer,
-    answers,
-  } = useResponseStore();
+        case "select":
+          return (
+            <motion.div
+              variants={optionVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <Select value={formAnswer} onValueChange={setFormAnswer}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select an option" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currentQuestion.options?.map((option, index) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.text}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </motion.div>
+          );
 
-  useEffect(() => {
-    setFormQuestions(formData.questions);
-  }, [formData.questions, setFormQuestions]);
+        case "date":
+          return (
+            <motion.div
+              variants={optionVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <Input
+                type="date"
+                value={formAnswer}
+                onChange={(e) => setFormAnswer(e.target.value)}
+                className="w-full"
+              />
+            </motion.div>
+          );
 
-  useEffect(() => {
-    const rephraseCurrentQuestion = async () => {
-      if (formQuestions[currentQuestionIndex]) {
-        const { output } = await rephraseQuestion(
-          formQuestions[currentQuestionIndex].questionText,
-          "no context"
-        );
-        let rephrased = "";
-        for await (const delta of readStreamableValue(output)) {
-          rephrased += delta;
-          setStreamedData(rephrased);
-        }
-        setIsStreamComplete(true);
+        case "time":
+          return (
+            <motion.div
+              variants={optionVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <Input
+                type="time"
+                value={formAnswer}
+                onChange={(e) => setFormAnswer(e.target.value)}
+                className="w-full"
+              />
+            </motion.div>
+          );
+
+        default:
+          return null;
       }
     };
 
-    rephraseCurrentQuestion();
-  }, [currentQuestionIndex, formQuestions]);
+    return (
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="space-y-4"
+      >
+        {showOptions && renderInput()}
+      </motion.div>
+    );
+  };
 
   const handleSaveAnswer = () => {
-    if (currentQuestionIndex === formQuestions.length - 1) {
-      return toast.info("Thank you for completing the form");
+    if (!formAnswer) {
+      toast.error("Please provide an answer before proceeding");
+      return;
     }
+
+    if (currentQuestionIndex === formQuestions.length - 1) {
+      addAnswer({
+        questionId: formQuestions[currentQuestionIndex].id,
+        answerText: formAnswer,
+      });
+      toast.success("Thank you for completing the form!");
+      return;
+    }
+
     addAnswer({
       questionId: formQuestions[currentQuestionIndex].id,
       answerText: formAnswer,
@@ -238,33 +307,39 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       <div className="max-w-lg">
-        <h1 className="font-sans">
-          {streamedData ? (
-            streamedData.split("").map((char, index) => (
-              <motion.span
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                  transition: { duration: 1 },
-                }}
-                transition={{ duration: 0.1 }}
-              >
-                {char}
-              </motion.span>
-            ))
-          ) : (
-            <div className="h-5 w-2 animate-pulse bg-black"></div>
+        <h1 className="font-sans text-lg">
+          {currentText}
+          {!isStreamComplete && (
+            <motion.span
+              animate={{ opacity: [0, 1] }}
+              transition={{ repeat: Infinity, duration: 0.7 }}
+              className="inline-block ml-1"
+            >
+              |
+            </motion.span>
           )}
         </h1>
       </div>
+
       <AnimatePresence mode="wait">
         {isStreamComplete && renderQuestionInput()}
       </AnimatePresence>
-      <Button onClick={handleSaveAnswer}>Next Question</Button>
+
+      {showOptions && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Button onClick={handleSaveAnswer} className="mt-4">
+            {currentQuestionIndex === formQuestions.length - 1
+              ? "Submit"
+              : "Next Question"}
+          </Button>
+        </motion.div>
+      )}
     </div>
   );
 };
