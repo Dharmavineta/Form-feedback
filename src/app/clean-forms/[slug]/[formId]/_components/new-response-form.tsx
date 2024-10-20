@@ -53,6 +53,8 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     formQuestions,
     incrementQuestionIndex,
     addAnswer,
+    llmContext,
+    setLlmContext,
   } = useResponseStore();
 
   useEffect(() => {
@@ -85,7 +87,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
 
         const { output } = await rephraseQuestion(
           formQuestions[currentQuestionIndex].questionText,
-          "no context"
+          llmContext
         );
 
         let accumulatedText = "";
@@ -112,7 +114,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     return () => {
       currentRef.cancel = true;
     };
-  }, [currentQuestionIndex, formQuestions]);
+  }, [currentQuestionIndex, formQuestions, llmContext]);
 
   const handleCheckboxChange = (optionId: string, checked: boolean) => {
     setSelectedCheckboxes((prev) => {
@@ -303,6 +305,11 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       questionId: formQuestions[currentQuestionIndex].id,
       answerText: formAnswer,
     });
+
+    const currentQuestion = formQuestions[currentQuestionIndex].questionText;
+    const newContext = `Question:${currentQuestion}\nAnswer:${formAnswer}`;
+    setLlmContext(newContext);
+
     incrementQuestionIndex();
   };
 
