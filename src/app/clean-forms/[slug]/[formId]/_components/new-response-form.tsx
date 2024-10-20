@@ -2,8 +2,15 @@
 import { useResponseStore } from "@/app/store/new-res-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FormType, QuestionType } from "@/db/schema";
-import React, { FC, useEffect, useState, useRef } from "react";
+import { answers, FormType, QuestionType } from "@/db/schema";
+import React, {
+  FC,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,23 +36,29 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   const [selectedCheckboxes, setSelectedCheckboxes] = useState<string[]>([]);
   const animationRef = useRef<{ cancel: boolean }>({ cancel: false });
 
-  const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
-  const optionVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      x: 0,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.5,
-        ease: "easeOut",
-      },
+  const containerVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 20 },
+      visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
     }),
-  };
+    []
+  );
+
+  const optionVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0, x: -20 },
+      visible: (i: number) => ({
+        opacity: 1,
+        x: 0,
+        transition: {
+          delay: i * 0.1,
+          duration: 0.5,
+          ease: "easeOut",
+        },
+      }),
+    }),
+    []
+  );
 
   const {
     setFormQuestions,
@@ -55,6 +68,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     addAnswer,
     llmContext,
     setLlmContext,
+    answers: userAnswers,
   } = useResponseStore();
 
   useEffect(() => {
@@ -70,6 +84,9 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       await new Promise((resolve) => setTimeout(resolve, 20));
     }
   };
+
+  console.log(formAnswer);
+  console.log(userAnswers);
 
   useEffect(() => {
     const currentRef = animationRef.current;
@@ -116,31 +133,35 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     };
   }, [currentQuestionIndex, formQuestions, llmContext]);
 
-  const handleCheckboxChange = (optionId: string, checked: boolean) => {
-    setSelectedCheckboxes((prev) => {
-      if (checked) {
-        return [...prev, optionId];
-      } else {
-        return prev.filter((id) => id !== optionId);
-      }
-    });
-    setFormAnswer((prev) => {
-      const currentOptions = formQuestions[currentQuestionIndex].options || [];
-      const selectedOptions = currentOptions
-        .filter((opt) =>
-          checked
-            ? [...selectedCheckboxes, optionId].includes(opt.id)
-            : selectedCheckboxes
-                .filter((id) => id !== optionId)
-                .includes(opt.id)
-        )
-        .map((opt) => opt.text)
-        .join(", ");
-      return selectedOptions;
-    });
-  };
+  const handleCheckboxChange = useCallback(
+    (optionId: string, checked: boolean) => {
+      setSelectedCheckboxes((prev) => {
+        if (checked) {
+          return [...prev, optionId];
+        } else {
+          return prev.filter((id) => id !== optionId);
+        }
+      });
+      setFormAnswer((prev) => {
+        const currentOptions =
+          formQuestions[currentQuestionIndex].options || [];
+        const selectedOptions = currentOptions
+          .filter((opt) =>
+            checked
+              ? [...selectedCheckboxes, optionId].includes(opt.id)
+              : selectedCheckboxes
+                  .filter((id) => id !== optionId)
+                  .includes(opt.id)
+          )
+          .map((opt) => opt.text)
+          .join(", ");
+        return selectedOptions;
+      });
+    },
+    [currentQuestionIndex, formQuestions, selectedCheckboxes]
+  );
 
-  const renderQuestionInput = () => {
+  const renderQuestionInput = useCallback(() => {
     if (!formQuestions.length) return null;
     const currentQuestion = formQuestions[currentQuestionIndex];
 
@@ -167,7 +188,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
           return (
             <RadioGroup
               value={formAnswer}
-              onValueChange={(value) => setFormAnswer(value)}
+              onValueChange={setFormAnswer}
               className="grid grid-cols-1 gap-y-5"
             >
               {currentQuestion.options?.map((option, index) => (
@@ -179,7 +200,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                   animate="visible"
                   className="flex items-center space-x-2 mb-2"
                 >
-                  <RadioGroupItem value={option.id} id={option.id} />
+                  <RadioGroupItem value={option.text} id={option.id} />
                   <Label htmlFor={option.id} className="font-medium text-sm">
                     {option.text}
                   </Label>
@@ -228,7 +249,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                 </SelectTrigger>
                 <SelectContent>
                   {currentQuestion.options?.map((option, index) => (
-                    <SelectItem key={option.id} value={option.id}>
+                    <SelectItem key={option.id} value={option.text}>
                       {option.text}
                     </SelectItem>
                   ))}
@@ -284,7 +305,21 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
         {showOptions && renderInput()}
       </motion.div>
     );
-  };
+  }, [
+    currentQuestionIndex,
+    formQuestions,
+    formAnswer,
+    selectedCheckboxes,
+    handleCheckboxChange,
+    containerVariants,
+    optionVariants,
+    showOptions,
+  ]);
+
+  const currentQuestion = useMemo(
+    () => formQuestions[currentQuestionIndex],
+    [formQuestions, currentQuestionIndex]
+  );
 
   const handleSaveAnswer = () => {
     if (!formAnswer) {
@@ -306,8 +341,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       answerText: formAnswer,
     });
 
-    const currentQuestion = formQuestions[currentQuestionIndex].questionText;
-    const newContext = `Question:${currentQuestion}\nAnswer:${formAnswer}`;
+    const newContext = `Question:${currentQuestion.questionText}\nAnswer:${formAnswer}`;
     setLlmContext(newContext);
 
     incrementQuestionIndex();
@@ -351,4 +385,4 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   );
 };
 
-export default NewResponseForm;
+export default React.memo(NewResponseForm);
