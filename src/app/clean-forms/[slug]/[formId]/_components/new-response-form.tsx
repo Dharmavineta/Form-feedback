@@ -25,6 +25,7 @@ import {
 import { readStreamableValue } from "ai/rsc";
 import { rephraseQuestion } from "@/app/actions";
 import { toast } from "sonner";
+import { ArrowRight } from "lucide-react";
 
 type FormDataType = Omit<FormType, "userId"> & { questions: QuestionType[] };
 
@@ -81,12 +82,9 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     for (let i = startIndex + 1; i <= text.length; i++) {
       if (animationRef.current.cancel) break;
       setCurrentText(text.slice(0, i));
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     }
   };
-
-  console.log(formAnswer);
-  console.log(userAnswers);
 
   useEffect(() => {
     const currentRef = animationRef.current;
@@ -173,13 +171,14 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
               variants={optionVariants}
               initial="hidden"
               animate="visible"
+              className="w-full"
             >
               <Input
                 type="text"
                 placeholder="Type your answer here"
                 value={formAnswer}
                 onChange={(e) => setFormAnswer(e.target.value)}
-                className="w-full border-t-0 border-r-0 border-l-0 rounded-r-none rounded-l-none"
+                className="w-full border-t-0 border-r-0 border-l-0 rounded-r-none rounded-l-none min-w-[512px] md:min-w-[672px]"
               />
             </motion.div>
           );
@@ -211,7 +210,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
 
         case "checkbox":
           return (
-            <div className="space-y-4">
+            <div className="space-y-4 w-[512px] md:w-[672px]">
               {currentQuestion.options?.map((option, index) => (
                 <motion.div
                   key={option.id}
@@ -219,7 +218,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                   variants={optionVariants}
                   initial="hidden"
                   animate="visible"
-                  className="flex items-center space-x-2"
+                  className="flex space-x-2 w-full"
                 >
                   <Checkbox
                     id={option.id}
@@ -242,12 +241,13 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
               variants={optionVariants}
               initial="hidden"
               animate="visible"
+              className="w-full min-w-[512px] md:min-w-[672px]"
             >
               <Select value={formAnswer} onValueChange={setFormAnswer}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select an option" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="w-full">
                   {currentQuestion.options?.map((option, index) => (
                     <SelectItem key={option.id} value={option.text}>
                       {option.text}
@@ -264,6 +264,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
               variants={optionVariants}
               initial="hidden"
               animate="visible"
+              className="w-full"
             >
               <Input
                 type="date"
@@ -280,6 +281,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
               variants={optionVariants}
               initial="hidden"
               animate="visible"
+              className="w-full"
             >
               <Input
                 type="time"
@@ -321,7 +323,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     [formQuestions, currentQuestionIndex]
   );
 
-  const handleSaveAnswer = () => {
+  const handleSaveAnswer = async () => {
     if (!formAnswer) {
       toast.error("Please provide an answer before proceeding");
       return;
@@ -333,6 +335,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
         answerText: formAnswer,
       });
       toast.success("Thank you for completing the form!");
+
       return;
     }
 
@@ -347,10 +350,18 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     incrementQuestionIndex();
   };
 
+  const isLastQuestion = currentQuestionIndex === formQuestions.length - 1;
+
   return (
-    <div className="space-y-6">
-      <div className="max-w-lg">
-        <h1 className="font-sans text-lg">
+    <div className="space-y-6 min-h-screen w-full">
+      <div className="flex font-sans flex-col gap-y-4 p-10 lg:px-32 lg:py-16 max-w-6xl">
+        <h1 className=" text-4xl">{formData.title}</h1>
+        <h1 className=" text-md text-muted-foreground">
+          {formData.description}
+        </h1>
+      </div>
+      <div className=" flex flex-col gap-y-4 items-center justify-center">
+        <h1 className="font-sans text-xl max-w-lg md:max-w-2xl">
           {currentText}
           {!isStreamComplete && (
             <motion.span
@@ -363,26 +374,41 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
           )}
         </h1>
       </div>
+      <div className="flex flex-col items-center justify-center w-full ">
+        <div className="flex justify-center ">
+          <AnimatePresence mode="wait">
+            {isStreamComplete && renderQuestionInput()}
+          </AnimatePresence>
+        </div>
 
-      <AnimatePresence mode="wait">
-        {isStreamComplete && renderQuestionInput()}
-      </AnimatePresence>
-
-      {showOptions && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Button onClick={handleSaveAnswer} className="mt-4">
-            {currentQuestionIndex === formQuestions.length - 1
-              ? "Submit"
-              : "Next Question"}
-          </Button>
-        </motion.div>
-      )}
+        {showOptions && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className=" w-[512px] md:w-[672px] flex justify-end"
+          >
+            {isLastQuestion ? (
+              <Button onClick={handleSaveAnswer} className="mt-4">
+                Submit
+              </Button>
+            ) : (
+              <motion.div className="mt-4">
+                <Button
+                  onClick={handleSaveAnswer}
+                  size="icon"
+                  className="rounded-full w-12 h-12 transition-all duration-300 bg-primary text-primary-foreground border-2 hover:bg-transparent hover:text-black hover:border-slate-300"
+                  aria-label="Next Question"
+                >
+                  <ArrowRight className="w-6 h-6" />
+                </Button>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default React.memo(NewResponseForm);
+export default NewResponseForm;
