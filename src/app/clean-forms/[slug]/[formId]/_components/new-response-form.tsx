@@ -111,7 +111,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
           accumulatedText += delta;
           await animateText(
             accumulatedText,
-            accumulatedText.length - (delta?.length || 0)
+            accumulatedText.length - (delta?.length || 25)
           );
         }
 
