@@ -393,11 +393,11 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                 Submit
               </Button>
             ) : (
-              <motion.div className="mt-4">
+              <motion.div className="mt-10">
                 <Button
                   onClick={handleSaveAnswer}
                   size="icon"
-                  className="rounded-full w-12 h-12 transition-all duration-300 bg-primary text-primary-foreground border-2 hover:bg-transparent hover:text-black hover:border-slate-300"
+                  className="rounded-full w-12 h-12 transition-all duration-300 bg-primary hover:scale-110  "
                   aria-label="Next Question"
                 >
                   <ArrowRight className="w-6 h-6" />
