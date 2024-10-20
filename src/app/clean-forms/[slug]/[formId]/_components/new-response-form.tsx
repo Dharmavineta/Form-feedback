@@ -17,12 +17,14 @@ import {
 } from "@/components/ui/select";
 import { readStreamableValue } from "ai/rsc";
 import { rephraseQuestion } from "@/app/actions";
+import { toast } from "sonner";
 
 type FormDataType = Omit<FormType, "userId"> & { questions: QuestionType[] };
 
 const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   const [streamedData, setStreamedData] = useState<string | "">("");
   const [formAnswer, setFormAnswer] = useState<string | "">("");
+  const [isStreamComplete, setIsStreamComplete] = useState<boolean>(false);
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -216,6 +218,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
           rephrased += delta;
           setStreamedData(rephrased);
         }
+        setIsStreamComplete(true);
       }
     };
 
@@ -223,13 +226,15 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   }, [currentQuestionIndex, formQuestions]);
 
   const handleSaveAnswer = () => {
-    if (currentQuestionIndex < formQuestions.length) {
-      incrementQuestionIndex();
-      addAnswer({
-        questionId: formQuestions[currentQuestionIndex].id,
-        answerText: formAnswer,
-      });
+    if (currentQuestionIndex === formQuestions.length - 1) {
+      return toast.info("Thank you for completing the form");
     }
+    addAnswer({
+      questionId: formQuestions[currentQuestionIndex].id,
+      answerText: formAnswer,
+    });
+    incrementQuestionIndex();
+    setIsStreamComplete(false);
   };
 
   return (
@@ -256,17 +261,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
         </h1>
       </div>
       <AnimatePresence mode="wait">{renderQuestionInput()}</AnimatePresence>
-      <Button
-        onClick={() => {
-          incrementQuestionIndex();
-          addAnswer({
-            questionId: formQuestions[currentQuestionIndex].id,
-            answerText: formAnswer,
-          });
-        }}
-      >
-        Next Question
-      </Button>
+      <Button onClick={handleSaveAnswer}>Next Question</Button>
     </div>
   );
 };
