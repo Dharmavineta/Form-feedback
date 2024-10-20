@@ -222,6 +222,16 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     rephraseCurrentQuestion();
   }, [currentQuestionIndex, formQuestions]);
 
+  const handleSaveAnswer = () => {
+    if (currentQuestionIndex < formQuestions.length) {
+      incrementQuestionIndex();
+      addAnswer({
+        questionId: formQuestions[currentQuestionIndex].id,
+        answerText: formAnswer,
+      });
+    }
+  };
+
   return (
     <div>
       <div className="max-w-lg">
@@ -249,6 +259,10 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       <Button
         onClick={() => {
           incrementQuestionIndex();
+          addAnswer({
+            questionId: formQuestions[currentQuestionIndex].id,
+            answerText: formAnswer,
+          });
         }}
       >
         Next Question

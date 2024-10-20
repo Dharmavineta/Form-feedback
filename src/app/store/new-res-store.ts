@@ -11,8 +11,8 @@ interface ResponseStore {
   currentQuestionIndex: number;
   incrementQuestionIndex: () => void;
   getCurrentQuestion: () => QuestionWithOptions | null;
-  answers: NewAnswerType[];
-  addAnswer: (answer: NewAnswerType) => void;
+  answers: Partial<NewAnswerType>[];
+  addAnswer: (answer: Partial<NewAnswerType>) => void;
   llmContext: string;
   setLlmContext: (context: string) => void;
   formTitle: string;
@@ -54,7 +54,7 @@ export const useResponseStore = create<ResponseStore>((set, get) => ({
     return formQuestions[currentQuestionIndex] || null;
   },
 
-  addAnswer: (answer: NewAnswerType) => {
+  addAnswer: (answer: Partial<NewAnswerType>) => {
     set((state) => ({ answers: [...state.answers, answer] }));
   },
 
