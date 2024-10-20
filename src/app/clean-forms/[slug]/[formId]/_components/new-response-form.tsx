@@ -82,7 +82,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     for (let i = startIndex + 1; i <= text.length; i++) {
       if (animationRef.current.cancel) break;
       setCurrentText(text.slice(0, i));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 25));
     }
   };
 
