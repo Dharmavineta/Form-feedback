@@ -157,7 +157,7 @@ export const answers = pgTable("answers", {
     .references(() => questions.id)
     .notNull(),
   answerText: text("answer_text"),
-  answerOptionId: varchar("answer_option_id", { length: 255 }),
+  // answerOptionId: varchar("answer_option_id", { length: 255 }),
 });
 
 export const answersRelations = relations(answers, ({ one }) => ({
