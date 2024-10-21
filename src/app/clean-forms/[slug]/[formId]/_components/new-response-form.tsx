@@ -152,7 +152,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                 placeholder="Type your answer here"
                 value={formAnswer}
                 onChange={(e) => setFormAnswer(e.target.value)}
-                className="w-full border-t-0 border-r-0 border-l-0 rounded-r-none rounded-l-none min-w-[512px] md:min-w-[672px]"
+                className="w-full border-t-0 border-r-0 border-l-0 rounded-r-none rounded-l-none min-w-[672px]"
               />
             </motion.div>
           );
@@ -171,7 +171,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                   variants={optionVariants}
                   initial="hidden"
                   animate="visible"
-                  className="flex items-center space-x-2 mb-2 md:w-[512px] md:min-w-[672px]"
+                  className="flex items-center space-x-2 mb-2 w-[672px]"
                 >
                   <RadioGroupItem value={option.text} id={option.id} />
                   <Label htmlFor={option.id} className="font-medium text-sm">
@@ -184,7 +184,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
 
         case "checkbox":
           return (
-            <div className="space-y-4 w-[512px] md:w-[672px]">
+            <div className="space-y-4 w-[672px]">
               {currentQuestion.options?.map((option, index) => (
                 <motion.div
                   key={option.id}
@@ -215,7 +215,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
               variants={optionVariants}
               initial="hidden"
               animate="visible"
-              className="w-full min-w-[512px] md:min-w-[672px]"
+              className="w-[672px]"
             >
               <Select value={formAnswer} onValueChange={setFormAnswer}>
                 <SelectTrigger className="w-full">
@@ -238,7 +238,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
               variants={optionVariants}
               initial="hidden"
               animate="visible"
-              className="w-full"
+              className="w-[672px]"
             >
               <Input
                 type="date"
@@ -255,7 +255,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
               variants={optionVariants}
               initial="hidden"
               animate="visible"
-              className="w-full"
+              className="w-[672px]"
             >
               <Input
                 type="time"
@@ -325,23 +325,55 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
 
   const isLastQuestion = currentQuestionIndex === formQuestions.length - 1;
 
+  const fadeVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
+  };
+
   return (
     <div className="space-y-6 min-h-screen w-full">
-      <div className="flex font-sans flex-col gap-y-4 p-10 lg:px-32 lg:py-16 max-w-6xl">
-        <h1 className="text-4xl">{formData.title}</h1>
-        <h1 className="text-md text-muted-foreground">
-          {formData.description}
-        </h1>
-      </div>
-      <div className="flex flex-col gap-y-4 items-center justify-center">
+      <motion.div
+        className="flex font-sans flex-col gap-y-4 p-10 lg:px-32 lg:py-16 max-w-6xl"
+        initial="hidden"
+        animate="visible"
+        variants={fadeVariants}
+      >
+        <motion.h1 className="text-4xl" variants={fadeVariants}>
+          {formData.title}
+        </motion.h1>
         <motion.h1
+          className="text-md text-muted-foreground"
+          variants={fadeVariants}
+        >
+          {formData.description}
+        </motion.h1>
+      </motion.div>
+      <div className="flex flex-col gap-y-4 items-center justify-center">
+        <motion.div
           variants={streamVariants}
           initial="hidden"
           animate="visible"
-          className="font-sans text-xl max-w-lg md:max-w-2xl"
+          className="font-sans text-xl w-[672px] min-h-[32px] relative"
         >
           {streamedData}
-        </motion.h1>
+          {!isStreamComplete && (
+            <motion.span
+              animate={{ opacity: [0, 1] }}
+              transition={{ repeat: Infinity, duration: 0.7 }}
+              className="absolute"
+              style={{
+                left: streamedData ? "auto" : "0",
+                marginLeft: streamedData ? "1px" : "0",
+              }}
+            >
+              |
+            </motion.span>
+          )}
+        </motion.div>
       </div>
       <div className="flex flex-col items-center justify-center w-full">
         <div className="flex justify-center">
@@ -355,7 +387,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="w-[512px] md:w-[672px] flex justify-end"
+            className="w-[672px] flex justify-end"
           >
             {isLastQuestion ? (
               <Button onClick={handleSaveAnswer} className="mt-4">
