@@ -40,6 +40,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     setFormMetadata,
     formTitle,
     formDescription,
+    answers,
   } = useResponseStore();
 
   useEffect(() => {

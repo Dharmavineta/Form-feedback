@@ -98,13 +98,11 @@ export const questionsRelations = relations(questions, ({ one, many }) => ({
 // Sessions table
 export const sessions = pgTable("sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
-  sessionToken: varchar("session_token", { length: 255 }).notNull().unique(),
+  sessionToken: uuid("session_token").defaultRandom().notNull().unique(),
   formId: uuid("form_id")
     .references(() => forms.id)
     .notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-  ipAddress: varchar("ip_address", { length: 45 }),
-  userAgent: text("user_agent"),
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at"),
   totalTimeSpent: integer("total_time_spent").default(0),
