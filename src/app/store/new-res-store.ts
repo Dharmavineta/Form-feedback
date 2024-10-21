@@ -8,7 +8,7 @@ type QuestionWithOptions = QuestionType & {
 interface ResponseStore {
   formQuestions: QuestionWithOptions[];
   setFormQuestions: (questions: QuestionWithOptions[]) => void;
-  currentQuestionIndex: number;
+  currentQuestionIndex: number | null;
   incrementQuestionIndex: () => void;
   getCurrentQuestion: () => QuestionWithOptions | null;
   answers: Partial<NewAnswerType>[];
@@ -17,41 +17,43 @@ interface ResponseStore {
   setLlmContext: (context: string) => void;
   formTitle: string;
   formDescription: string;
-  setInitialNoteContext: (title: string, description: string) => void;
-  initialNoteContext: string;
-  endNote: string;
+  setFormMetadata: (title: string, description: string) => void;
 }
 
 export const useResponseStore = create<ResponseStore>((set, get) => ({
   formQuestions: [],
-  currentQuestionIndex: 0,
+  currentQuestionIndex: null,
   answers: [],
   llmContext: "",
   formDescription: "",
   formTitle: "",
-  initialNoteContext: "",
-  endNote: "",
 
   setFormQuestions: (questions: QuestionWithOptions[]) => {
     set({
       formQuestions: questions,
-      currentQuestionIndex: 0,
+      currentQuestionIndex: null,
     });
   },
 
   incrementQuestionIndex: () => {
     set((state) => {
-      const nextIndex = state.currentQuestionIndex + 1;
-      if (nextIndex < state.formQuestions.length) {
+      const nextIndex =
+        state.currentQuestionIndex === null
+          ? 0
+          : state.currentQuestionIndex + 1;
+      if (nextIndex <= state.formQuestions.length) {
         return { currentQuestionIndex: nextIndex };
       }
-      return state; // If we're at the last question, don't change anything
+      return state;
     });
   },
 
   getCurrentQuestion: () => {
     const { formQuestions, currentQuestionIndex } = get();
-    return formQuestions[currentQuestionIndex] || null;
+    return currentQuestionIndex !== null &&
+      currentQuestionIndex < formQuestions.length
+      ? formQuestions[currentQuestionIndex]
+      : null;
   },
 
   addAnswer: (answer: Partial<NewAnswerType>) => {
@@ -62,11 +64,10 @@ export const useResponseStore = create<ResponseStore>((set, get) => ({
     set({ llmContext: context });
   },
 
-  setInitialNoteContext: (title: string, description: string) => {
+  setFormMetadata: (title: string, description: string) => {
     set({
       formTitle: title,
       formDescription: description,
-      initialNoteContext: `${title}\n${description}`,
     });
   },
 }));
