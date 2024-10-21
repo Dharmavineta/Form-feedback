@@ -194,16 +194,13 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       },
     }),
   };
+  console.log(currentQuestionIndex, "This is the current question index");
 
   const handleNext = async () => {
     updateTotalTimeSpent(); // Update time spent before proceeding
 
     if (currentQuestionIndex === null) {
       incrementQuestionIndex();
-      // Here, you would call your server action to create a session
-      // Pass totalTimeSpent as an argument
-      // For example:
-      // await createSessionServerAction(formData.id, totalTimeSpent);
       return;
     }
 
