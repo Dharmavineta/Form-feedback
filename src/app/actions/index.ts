@@ -524,3 +524,37 @@ export async function generateAIObject(input: string) {
     return error;
   }
 }
+
+type MessageType = "intro" | "outro";
+
+export async function generateFormMessage(type: MessageType) {
+  const stream = createStreamableValue("");
+
+  const prompts = {
+    intro: `Create a warm, welcoming introduction for an interactive form. The message should:
+- Be brief but friendly (2-3 sentences maximum)
+- Welcome the user and set a positive tone
+- Mention that this is an interactive conversation
+- Avoid repetitive phrases or redundant information`,
+
+    outro: `Create a brief closing message for an interactive form. The message should:
+- Thank the user for their time (1-2 sentences)
+- Confirm their responses have been recorded
+- End on a positive note
+Keep it concise and avoid repetition.`,
+  };
+
+  (async () => {
+    const { textStream } = await streamText({
+      model: google("gemini-1.5-flash-002"),
+      prompt: prompts[type],
+    });
+
+    for await (const delta of textStream) {
+      stream.update(delta);
+    }
+    stream.done();
+  })();
+
+  return { output: stream.value };
+}
