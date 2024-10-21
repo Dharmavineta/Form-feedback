@@ -3,14 +3,7 @@ import { useResponseStore } from "@/app/store/new-res-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { answers, FormType, QuestionType } from "@/db/schema";
-import React, {
-  FC,
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { FC, useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,17 +23,24 @@ import { ArrowRight } from "lucide-react";
 type FormDataType = Omit<FormType, "userId"> & { questions: QuestionType[] };
 
 const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
-  const [currentText, setCurrentText] = useState<string>("");
+  const [streamedData, setStreamedData] = useState<string>("");
   const [formAnswer, setFormAnswer] = useState<string>("");
   const [isStreamComplete, setIsStreamComplete] = useState<boolean>(false);
   const [showOptions, setShowOptions] = useState<boolean>(false);
   const [selectedCheckboxes, setSelectedCheckboxes] = useState<string[]>([]);
-  const animationRef = useRef<{ cancel: boolean }>({ cancel: false });
 
   const containerVariants = useMemo(
     () => ({
       hidden: { opacity: 0, y: 20 },
       visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    }),
+    []
+  );
+
+  const streamVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0 },
+      visible: { opacity: 1, transition: { duration: 0.3 } },
     }),
     []
   );
@@ -69,33 +69,19 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     addAnswer,
     llmContext,
     setLlmContext,
-    answers: userAnswers,
   } = useResponseStore();
 
   useEffect(() => {
     setFormQuestions(formData.questions);
   }, [formData.questions, setFormQuestions]);
 
-  const animateText = async (text: string, startIndex: number) => {
-    if (!text) return;
-
-    for (let i = startIndex + 1; i <= text.length; i++) {
-      if (animationRef.current.cancel) break;
-      setCurrentText(text.slice(0, i));
-      await new Promise((resolve) => setTimeout(resolve, 25));
-    }
-  };
-
   useEffect(() => {
-    const currentRef = animationRef.current;
-    currentRef.cancel = false;
-
-    const rephraseCurrentQuestion = async () => {
+    const handleQuestionStream = async () => {
       if (!formQuestions[currentQuestionIndex]) return;
 
       try {
         setShowOptions(false);
-        setCurrentText("");
+        setStreamedData("");
         setFormAnswer("");
         setSelectedCheckboxes([]);
         setIsStreamComplete(false);
@@ -105,30 +91,18 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
           llmContext
         );
 
-        let accumulatedText = "";
         for await (const delta of readStreamableValue(output)) {
-          if (currentRef.cancel) return;
-          accumulatedText += delta;
-          await animateText(
-            accumulatedText,
-            accumulatedText.length - (delta?.length || 25)
-          );
+          setStreamedData((prev) => prev + delta);
         }
 
-        if (!currentRef.cancel) {
-          setIsStreamComplete(true);
-          setTimeout(() => setShowOptions(true), 500);
-        }
+        setIsStreamComplete(true);
+        setTimeout(() => setShowOptions(true), 500);
       } catch (error) {
-        console.error("Error in rephraseCurrentQuestion:", error);
+        console.error("Error in handleQuestionStream:", error);
       }
     };
 
-    rephraseCurrentQuestion();
-
-    return () => {
-      currentRef.cancel = true;
-    };
+    handleQuestionStream();
   }, [currentQuestionIndex, formQuestions, llmContext]);
 
   const handleCheckboxChange = useCallback(
@@ -248,7 +222,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                   <SelectValue placeholder="Select an option" />
                 </SelectTrigger>
                 <SelectContent className="w-full">
-                  {currentQuestion.options?.map((option, index) => (
+                  {currentQuestion.options?.map((option) => (
                     <SelectItem key={option.id} value={option.text}>
                       {option.text}
                     </SelectItem>
@@ -335,7 +309,6 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
         answerText: formAnswer,
       });
       toast.success("Thank you for completing the form!");
-
       return;
     }
 
@@ -355,27 +328,23 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   return (
     <div className="space-y-6 min-h-screen w-full">
       <div className="flex font-sans flex-col gap-y-4 p-10 lg:px-32 lg:py-16 max-w-6xl">
-        <h1 className=" text-4xl">{formData.title}</h1>
-        <h1 className=" text-md text-muted-foreground">
+        <h1 className="text-4xl">{formData.title}</h1>
+        <h1 className="text-md text-muted-foreground">
           {formData.description}
         </h1>
       </div>
-      <div className=" flex flex-col gap-y-4 items-center justify-center">
-        <h1 className="font-sans text-xl max-w-lg md:max-w-2xl">
-          {currentText}
-          {!isStreamComplete && (
-            <motion.span
-              animate={{ opacity: [0, 1] }}
-              transition={{ repeat: Infinity, duration: 0.7 }}
-              className="inline-block ml-1"
-            >
-              |
-            </motion.span>
-          )}
-        </h1>
+      <div className="flex flex-col gap-y-4 items-center justify-center">
+        <motion.h1
+          variants={streamVariants}
+          initial="hidden"
+          animate="visible"
+          className="font-sans text-xl max-w-lg md:max-w-2xl"
+        >
+          {streamedData}
+        </motion.h1>
       </div>
-      <div className="flex flex-col items-center justify-center w-full ">
-        <div className="flex justify-center ">
+      <div className="flex flex-col items-center justify-center w-full">
+        <div className="flex justify-center">
           <AnimatePresence mode="wait">
             {isStreamComplete && renderQuestionInput()}
           </AnimatePresence>
@@ -386,7 +355,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className=" w-[512px] md:w-[672px] flex justify-end"
+            className="w-[512px] md:w-[672px] flex justify-end"
           >
             {isLastQuestion ? (
               <Button onClick={handleSaveAnswer} className="mt-4">

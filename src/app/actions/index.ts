@@ -223,21 +223,17 @@ export async function getFormById(formId: string) {
 export async function rephraseQuestion(question: string, context: string = "") {
   const stream = createStreamableValue("");
 
-  const prompt = `You are building a smart, interactive form that asks questions in a natural, conversational manner. The form evolves dynamically as it progresses, taking into account the previous questions and answers. You are provided with a list of previously asked questions and the user's answers, where each question is preceded by "Question:" and each answer is preceded by "Answer:". 
+  const prompt = `You are building a smart, interactive form that asks questions in a natural, conversational manner. The form evolves dynamically as it progresses, taking into account the previous questions and answers. You are provided with a list of previously asked questions and the user's answers, where each question is preceded by "Question:" and each answer is preceded by "Answer:".
 
-Your goal is to rephrase the next question in a way that feels engaging, friendly, and interactive, as if the form is engaging in a real-time conversation with the user. The rephrased question should always:
-- Be longer, conversational, and responsive to the user's prior answers.
+Your goal is to rephrase the next question in a way that feels engaging, friendly, and interactive, as if the form is having a real-time conversation with the user. The rephrased question should:
+- Be longer, conversational, and directly responsive to the user's prior answers, without making assumptions not present in the context.
 - Show empathy or excitement depending on whether the user gave a positive or negative response.
-- Make the user feel like they are part of a friendly, evolving dialogue, not just answering static questions.
-- Use open-ended phrases that flow naturally from the user's previous input to the next question, creating the sense of live interaction.
+- Make the user feel like they are part of an ongoing, evolving dialogue.
+- Use open-ended phrases that flow naturally from the user's previous input to the next question, maintaining a dynamic conversation.
 
-If the user's answer reflects a negative or challenging experience, acknowledge it with empathy (e.g., "Oh, I'm sorry you had such an experience, but I'd love to know more about..."). If their answer is positive, reinforce their experience (e.g., "That's great! Let's explore...").
+If no context is provided, assume this is the first question, greet the user warmly (e.g., "Good day to you!") and ask the question in a friendly, conversational way without assuming any prior knowledge.
 
-If the context is empty, assume it’s the start of the conversation and introduce the next question warmly and conversationally, without assuming prior context.
-
-Remember, your goal is to make the interaction feel dynamic, like an ongoing conversation. Be detailed and engaging in your rephrased question, taking the time to create an interactive experience.
-
-Please provide only the rephrased question in your response.
+Do not introduce new information or ask additional questions. Keep the rephrasing focused on the question.
 
 Previous questions and answers:
 ${context}
