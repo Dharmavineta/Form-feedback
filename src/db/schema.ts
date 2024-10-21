@@ -118,19 +118,16 @@ export const sessionsRelations = relations(sessions, ({ one, many }) => ({
   questionInteractions: many(questionInteraction),
 }));
 
-// Responses table
+// Responses table (simplified)
 export const responses = pgTable("responses", {
   id: uuid("id").defaultRandom().primaryKey(),
   formId: uuid("form_id")
     .references(() => forms.id)
     .notNull(),
-  sessionId: uuid("session_id")
-    .references(() => sessions.id)
-    .notNull(),
-  isComplete: boolean("is_complete").default(false),
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at"),
   totalTimeSpent: integer("total_time_spent").default(0),
+  isComplete: boolean("is_complete").default(false),
 });
 
 export const responsesRelations = relations(responses, ({ one, many }) => ({
@@ -138,11 +135,9 @@ export const responsesRelations = relations(responses, ({ one, many }) => ({
     fields: [responses.formId],
     references: [forms.id],
   }),
-  session: one(sessions, {
-    fields: [responses.sessionId],
-    references: [sessions.id],
-  }),
   answers: many(answers),
+  formViews: many(formViews),
+  questionInteractions: many(questionInteraction),
 }));
 
 // Answer table
@@ -155,7 +150,6 @@ export const answers = pgTable("answers", {
     .references(() => questions.id)
     .notNull(),
   answerText: text("answer_text"),
-  // answerOptionId: varchar("answer_option_id", { length: 255 }),
 });
 
 export const answersRelations = relations(answers, ({ one }) => ({
@@ -175,8 +169,8 @@ export const formViews = pgTable("form_views", {
   formId: uuid("form_id")
     .references(() => forms.id)
     .notNull(),
-  sessionId: uuid("session_id")
-    .references(() => sessions.id)
+  responseId: uuid("response_id")
+    .references(() => responses.id)
     .notNull(),
   viewedAt: timestamp("viewed_at").defaultNow(),
   timeSpent: integer("time_spent").default(0),
@@ -187,9 +181,9 @@ export const formViewsRelations = relations(formViews, ({ one }) => ({
     fields: [formViews.formId],
     references: [forms.id],
   }),
-  session: one(sessions, {
-    fields: [formViews.sessionId],
-    references: [sessions.id],
+  response: one(responses, {
+    fields: [formViews.responseId],
+    references: [responses.id],
   }),
 }));
 
@@ -217,8 +211,8 @@ export const dailyStatsRelations = relations(dailyStats, ({ one }) => ({
 // Question Interaction table
 export const questionInteraction = pgTable("question_interaction", {
   id: uuid("id").defaultRandom().primaryKey(),
-  sessionId: uuid("session_id")
-    .references(() => sessions.id)
+  responseId: uuid("response_id")
+    .references(() => responses.id)
     .notNull(),
   questionId: uuid("question_id")
     .references(() => questions.id)
@@ -231,9 +225,9 @@ export const questionInteraction = pgTable("question_interaction", {
 export const questionInteractionRelations = relations(
   questionInteraction,
   ({ one }) => ({
-    session: one(sessions, {
-      fields: [questionInteraction.sessionId],
-      references: [sessions.id],
+    response: one(responses, {
+      fields: [questionInteraction.responseId],
+      references: [responses.id],
     }),
     question: one(questions, {
       fields: [questionInteraction.questionId],

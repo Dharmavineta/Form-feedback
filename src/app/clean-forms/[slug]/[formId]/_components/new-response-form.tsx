@@ -3,7 +3,7 @@ import { useResponseStore } from "@/app/store/new-res-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormType, QuestionType } from "@/db/schema";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,6 +28,8 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   const [isStreamComplete, setIsStreamComplete] = useState<boolean>(false);
   const [showOptions, setShowOptions] = useState<boolean>(false);
   const [selectedCheckboxes, setSelectedCheckboxes] = useState<string[]>([]);
+  const [startTime, setStartTime] = useState<number>(Date.now());
+  const [totalTimeSpent, setTotalTimeSpent] = useState<number>(0);
 
   const {
     setFormQuestions,
@@ -134,6 +136,17 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     llmContext,
   ]);
 
+  const updateTotalTimeSpent = useCallback(() => {
+    const currentTime = Date.now();
+    const timeSpent = Math.floor((currentTime - startTime) / 1000); // Convert to seconds
+    setTotalTimeSpent(timeSpent);
+  }, [startTime]);
+
+  useEffect(() => {
+    const interval = setInterval(updateTotalTimeSpent, 1000);
+    return () => clearInterval(interval);
+  }, [updateTotalTimeSpent]);
+
   const handleCheckboxChange = (optionId: string, checked: boolean) => {
     setSelectedCheckboxes((prev) => {
       if (checked) {
@@ -183,8 +196,14 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   };
 
   const handleNext = async () => {
+    updateTotalTimeSpent(); // Update time spent before proceeding
+
     if (currentQuestionIndex === null) {
       incrementQuestionIndex();
+      // Here, you would call your server action to create a session
+      // Pass totalTimeSpent as an argument
+      // For example:
+      // await createSessionServerAction(formData.id, totalTimeSpent);
       return;
     }
 
@@ -205,6 +224,10 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     }
 
     if (currentQuestionIndex === formQuestions.length) {
+      // Here, you would call your server action to submit the form
+      // Pass totalTimeSpent as an argument
+      // For example:
+      // await submitFormServerAction(formData.id, answers, totalTimeSpent);
       toast.success("Thank you for completing the form!");
       return;
     }

@@ -310,32 +310,32 @@ The generated form should follow this schema precisely, including the presence o
   }
 }
 
-export async function initializeResponse(formId: string) {
-  const { userId } = auth();
+// export async function initializeResponse(formId: string) {
+//   const { userId } = auth();
 
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
+//   if (!userId) {
+//     throw new Error("Unauthorized");
+//   }
 
-  try {
-    const newResponse: NewResponseType = {
-      formId,
-      sessionId: "", // You might want to implement session management
-      isComplete: false,
-      startedAt: new Date(),
-    };
+//   try {
+//     const newResponse: NewResponseType = {
+//       formId,
+//       sessionId: "", // You might want to implement session management
+//       isComplete: false,
+//       startedAt: new Date(),
+//     };
 
-    const [createdResponse] = await db
-      .insert(responses)
-      .values(newResponse)
-      .returning();
+//     const [createdResponse] = await db
+//       .insert(responses)
+//       .values(newResponse)
+//       .returning();
 
-    return { responseId: createdResponse.id };
-  } catch (error) {
-    console.error("Failed to initialize response:", error);
-    throw new Error("Failed to initialize response");
-  }
-}
+//     return { responseId: createdResponse.id };
+//   } catch (error) {
+//     console.error("Failed to initialize response:", error);
+//     throw new Error("Failed to initialize response");
+//   }
+// }
 
 export async function saveAnswer(answer: NewAnswerType) {
   const { userId } = auth();
@@ -554,4 +554,50 @@ Context: ${context}`,
   })();
 
   return { output: stream.value };
+}
+
+export async function submitFormResponse(
+  formId: string,
+  answersData: Omit<NewAnswerType, "responseId">[]
+) {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    return await db.transaction(async (tx) => {
+      // Create the response
+      const [createdResponse] = await tx
+        .insert(responses)
+        .values({
+          formId,
+          startedAt: new Date(), // You might want to pass this in if you've been tracking it
+          completedAt: new Date(),
+          totalTimeSpent: 0, // Calculate this if you've been tracking time
+          isComplete: true,
+        } as NewResponseType)
+        .returning();
+
+      // Create answers
+      const answersToInsert = answersData.map((answer) => ({
+        ...answer,
+        responseId: createdResponse.id,
+      }));
+
+      await tx.insert(answers).values(answersToInsert);
+
+      // Optional: Update form stats
+      // You could update daily stats or form views here if needed
+
+      return {
+        message: "Form response submitted successfully",
+        responseId: createdResponse.id,
+      };
+    });
+  } catch (error) {
+    console.error("Failed to submit form response:", error);
+    throw new Error("Failed to submit form response");
+  }
 }
