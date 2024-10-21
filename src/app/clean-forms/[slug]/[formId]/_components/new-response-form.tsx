@@ -3,7 +3,14 @@ import { useResponseStore } from "@/app/store/new-res-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormType, QuestionType } from "@/db/schema";
-import React, { FC, useEffect, useState, useCallback } from "react";
+import React, {
+  FC,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,12 +31,11 @@ type FormDataType = Omit<FormType, "userId"> & { questions: QuestionType[] };
 
 const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   const [streamedData, setStreamedData] = useState<string>("");
-  const [formAnswer, setFormAnswer] = useState<string>("");
   const [isStreamComplete, setIsStreamComplete] = useState<boolean>(false);
   const [showOptions, setShowOptions] = useState<boolean>(false);
   const [selectedCheckboxes, setSelectedCheckboxes] = useState<string[]>([]);
-  const [startTime, setStartTime] = useState<number>(Date.now());
-  const [totalTimeSpent, setTotalTimeSpent] = useState<number>(0);
+  const startTimeRef = useRef<number>(Date.now());
+  const totalTimeSpentRef = useRef<number>(0);
 
   const {
     setFormQuestions,
@@ -44,6 +50,9 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     formDescription,
     answers,
   } = useResponseStore();
+
+  const [formAnswer, setFormAnswer] = useState<string>("");
+  const memoizedFormAnswer = useMemo(() => formAnswer, [formAnswer]);
 
   useEffect(() => {
     setFormQuestions(formData.questions);
@@ -138,40 +147,45 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
 
   const updateTotalTimeSpent = useCallback(() => {
     const currentTime = Date.now();
-    const timeSpent = Math.floor((currentTime - startTime) / 1000); // Convert to seconds
-    setTotalTimeSpent(timeSpent);
-  }, [startTime]);
+    totalTimeSpentRef.current = Math.floor(
+      (currentTime - startTimeRef.current) / 1000
+    );
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(updateTotalTimeSpent, 1000);
     return () => clearInterval(interval);
   }, [updateTotalTimeSpent]);
 
-  const handleCheckboxChange = (optionId: string, checked: boolean) => {
-    setSelectedCheckboxes((prev) => {
-      if (checked) {
-        return [...prev, optionId];
-      } else {
-        return prev.filter((id) => id !== optionId);
-      }
-    });
+  const handleCheckboxChange = useCallback(
+    (optionId: string, checked: boolean) => {
+      setSelectedCheckboxes((prev) => {
+        if (checked) {
+          return [...prev, optionId];
+        } else {
+          return prev.filter((id) => id !== optionId);
+        }
+      });
 
-    setFormAnswer((prev) => {
-      if (currentQuestionIndex === null) return prev;
-      const currentOptions = formQuestions[currentQuestionIndex].options || [];
-      const selectedOptions = currentOptions
-        .filter((opt) =>
-          checked
-            ? [...selectedCheckboxes, optionId].includes(opt.id)
-            : selectedCheckboxes
-                .filter((id) => id !== optionId)
-                .includes(opt.id)
-        )
-        .map((opt) => opt.text)
-        .join(", ");
-      return selectedOptions;
-    });
-  };
+      setFormAnswer((prev) => {
+        if (currentQuestionIndex === null) return prev;
+        const currentOptions =
+          formQuestions[currentQuestionIndex].options || [];
+        const selectedOptions = currentOptions
+          .filter((opt) =>
+            checked
+              ? [...selectedCheckboxes, optionId].includes(opt.id)
+              : selectedCheckboxes
+                  .filter((id) => id !== optionId)
+                  .includes(opt.id)
+          )
+          .map((opt) => opt.text)
+          .join(", ");
+        return selectedOptions;
+      });
+    },
+    [currentQuestionIndex, formQuestions, selectedCheckboxes]
+  );
 
   const fadeVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -196,8 +210,8 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   };
   console.log(currentQuestionIndex, "This is the current question index");
 
-  const handleNext = async () => {
-    updateTotalTimeSpent(); // Update time spent before proceeding
+  const handleNext = useCallback(async () => {
+    updateTotalTimeSpent();
 
     if (currentQuestionIndex === null) {
       incrementQuestionIndex();
@@ -205,7 +219,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     }
 
     if (currentQuestionIndex < formQuestions.length) {
-      if (!formAnswer) {
+      if (!memoizedFormAnswer) {
         toast.error("Please provide an answer before proceeding");
         return;
       }
@@ -213,26 +227,30 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       const currentQuestion = formQuestions[currentQuestionIndex];
       addAnswer({
         questionId: currentQuestion.id,
-        answerText: formAnswer,
+        answerText: memoizedFormAnswer,
       });
 
-      const newContext = `Question:${currentQuestion.questionText}\nAnswer:${formAnswer}`;
+      const newContext = `Question:${currentQuestion.questionText}\nAnswer:${memoizedFormAnswer}`;
       setLlmContext(newContext);
     }
 
     if (currentQuestionIndex === formQuestions.length) {
-      // Here, you would call your server action to submit the form
-      // Pass totalTimeSpent as an argument
-      // For example:
-      // await submitFormServerAction(formData.id, answers, totalTimeSpent);
       toast.success("Thank you for completing the form!");
       return;
     }
 
     incrementQuestionIndex();
-  };
+  }, [
+    currentQuestionIndex,
+    formQuestions,
+    memoizedFormAnswer,
+    addAnswer,
+    incrementQuestionIndex,
+    setLlmContext,
+    updateTotalTimeSpent,
+  ]);
 
-  const renderQuestionInput = () => {
+  const renderQuestionInput = useCallback(() => {
     if (
       !formQuestions.length ||
       currentQuestionIndex === null ||
@@ -241,6 +259,19 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       return null;
 
     const currentQuestion = formQuestions[currentQuestionIndex];
+
+    const optionVariants = {
+      hidden: { opacity: 0, x: -20 },
+      visible: (i: number) => ({
+        opacity: 1,
+        x: 0,
+        transition: {
+          delay: i * 0.1,
+          duration: 0.5,
+          ease: "easeOut",
+        },
+      }),
+    };
 
     switch (currentQuestion.questionType) {
       case "text":
@@ -254,7 +285,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
             <Input
               type="text"
               placeholder="Type your answer here"
-              value={formAnswer}
+              value={memoizedFormAnswer}
               onChange={(e) => setFormAnswer(e.target.value)}
               className="w-full border-t-0 border-r-0 border-l-0 rounded-r-none rounded-l-none min-w-[672px]"
             />
@@ -264,7 +295,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       case "radio":
         return (
           <RadioGroup
-            value={formAnswer}
+            value={memoizedFormAnswer}
             onValueChange={setFormAnswer}
             className="grid grid-cols-1 gap-y-5"
           >
@@ -321,7 +352,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
             animate="visible"
             className="w-[672px]"
           >
-            <Select value={formAnswer} onValueChange={setFormAnswer}>
+            <Select value={memoizedFormAnswer} onValueChange={setFormAnswer}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
@@ -346,7 +377,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
           >
             <Input
               type="date"
-              value={formAnswer}
+              value={memoizedFormAnswer}
               onChange={(e) => setFormAnswer(e.target.value)}
               className="w-full"
             />
@@ -363,7 +394,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
           >
             <Input
               type="time"
-              value={formAnswer}
+              value={memoizedFormAnswer}
               onChange={(e) => setFormAnswer(e.target.value)}
               className="w-full"
             />
@@ -373,7 +404,19 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       default:
         return null;
     }
-  };
+  }, [
+    currentQuestionIndex,
+    formQuestions,
+    memoizedFormAnswer,
+    setFormAnswer,
+    handleCheckboxChange,
+    selectedCheckboxes,
+  ]);
+
+  const memoizedQuestionInput = useMemo(
+    () => renderQuestionInput(),
+    [renderQuestionInput]
+  );
 
   return (
     <div className="space-y-6 min-h-screen w-full">
@@ -428,7 +471,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
                 >
-                  {renderQuestionInput()}
+                  {memoizedQuestionInput}
                 </motion.div>
               )}
           </AnimatePresence>
@@ -464,4 +507,4 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   );
 };
 
-export default NewResponseForm;
+export default React.memo(NewResponseForm);
