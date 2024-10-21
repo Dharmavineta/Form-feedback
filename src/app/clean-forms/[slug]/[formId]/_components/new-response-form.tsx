@@ -106,7 +106,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   // Handle outro message
   useEffect(() => {
     if (currentQuestionIndex === formQuestions.length) {
-      const context = `Form Title: ${formTitle}\nForm Description: ${formDescription}`;
+      const context = `Form Title: ${formTitle}\nForm Description: ${formDescription}\n Last Question Context: ${llmContext}`;
       const streamOutro = async () => {
         try {
           setShowOptions(false);
@@ -125,7 +125,13 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       };
       streamOutro();
     }
-  }, [currentQuestionIndex, formQuestions.length, formDescription, formTitle]);
+  }, [
+    currentQuestionIndex,
+    formQuestions.length,
+    formDescription,
+    formTitle,
+    llmContext,
+  ]);
 
   const handleCheckboxChange = (optionId: string, checked: boolean) => {
     setSelectedCheckboxes((prev) => {

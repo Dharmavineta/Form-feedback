@@ -528,6 +528,7 @@ export async function generateAIObject(input: string) {
 type MessageType = "intro" | "outro";
 
 export async function generateFormMessage(type: MessageType, context: string) {
+  console.log(context, "This is the context from the server action");
   const stream = createStreamableValue("");
 
   const prompts = {
@@ -535,7 +536,7 @@ export async function generateFormMessage(type: MessageType, context: string) {
 
 Context: ${context}`,
 
-    outro: `Using the context provided below, create a warm and dynamic closing note. Acknowledge the user's participation by referencing the form's title and description, and respond to their last answer briefly. Then, conclude with a polite and interactive thank-you, ensuring the user feels appreciated for their input.
+    outro: `Using the context provided below, create a warm and dynamic closing note. First, acknowledge the user's last answer and respond to it naturally. Then, use the form title and description from the context to generate a polite and personalized thank-you message for completing the form. Ensure the user feels appreciated for their time and input, while staying within the provided information without adding any unrelated details.
 
 Context: ${context}`,
   };
