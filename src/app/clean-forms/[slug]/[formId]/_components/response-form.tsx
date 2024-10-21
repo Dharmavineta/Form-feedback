@@ -1,383 +1,383 @@
-"use client";
-import React, { FC, useEffect, useState, useCallback } from "react";
-import { useResponseStore } from "@/app/store/response-store";
-import { rephraseQuestion } from "@/app/actions";
-import { readStreamableValue } from "ai/rsc";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { FormType, QuestionType } from "@/db/schema";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+// "use client";
+// import React, { FC, useEffect, useState, useCallback } from "react";
+// import { useResponseStore } from "@/app/store/response-store";
+// import { rephraseQuestion } from "@/app/actions";
+// import { readStreamableValue } from "ai/rsc";
+// import { Input } from "@/components/ui/input";
+// import { Checkbox } from "@/components/ui/checkbox";
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import { Label } from "@/components/ui/label";
+// import { FormType, QuestionType } from "@/db/schema";
+// import { motion, AnimatePresence } from "framer-motion";
+// import { ArrowRight } from "lucide-react";
+// import { toast } from "sonner";
+// import { useRouter } from "next/navigation";
 
-type FormDataType = Omit<FormType, "userId"> & { questions: QuestionType[] };
+// type FormDataType = Omit<FormType, "userId"> & { questions: QuestionType[] };
 
-const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
-  const {
-    form,
-    currentQuestionIndex,
-    rephrasedQuestions,
-    answers,
-    isLoading,
-    setForm,
-    initializeResponse,
-    addRephrasedQuestion,
-    saveAnswer,
-    moveToNextQuestion,
-    submitResponses,
-    conversationHistory,
-    updateConversationHistory,
-  } = useResponseStore();
+// const ResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
+//   const {
+//     form,
+//     currentQuestionIndex,
+//     rephrasedQuestions,
+//     answers,
+//     isLoading,
+//     setForm,
+//     initializeResponse,
+//     addRephrasedQuestion,
+//     saveAnswer,
+//     moveToNextQuestion,
+//     submitResponses,
+//     conversationHistory,
+//     updateConversationHistory,
+//   } = useResponseStore();
 
-  console.log(
-    formData.backgroundColor,
-    "This is the formData background color"
-  );
+//   console.log(
+//     formData.backgroundColor,
+//     "This is the formData background color"
+//   );
 
-  const [isRephrasing, setIsRephrasing] = useState(false);
-  const [currentAnswer, setCurrentAnswer] = useState<string>("");
-  const [streamedQuestion, setStreamedQuestion] = useState<string>("");
-  const [visibleChars, setVisibleChars] = useState(0);
+//   const [isRephrasing, setIsRephrasing] = useState(false);
+//   const [currentAnswer, setCurrentAnswer] = useState<string>("");
+//   const [streamedQuestion, setStreamedQuestion] = useState<string>("");
+//   const [visibleChars, setVisibleChars] = useState(0);
 
-  useEffect(() => {
-    setForm(formData);
-    initializeResponse();
-  }, [formData, setForm, initializeResponse]);
+//   useEffect(() => {
+//     setForm(formData);
+//     initializeResponse();
+//   }, [formData, setForm, initializeResponse]);
 
-  const rephraseCurrentQuestion = useCallback(async () => {
-    if (!form || currentQuestionIndex >= form.questions.length) return;
+//   const rephraseCurrentQuestion = useCallback(async () => {
+//     if (!form || currentQuestionIndex >= form.questions.length) return;
 
-    setIsRephrasing(true);
-    const currentQuestion = form.questions[currentQuestionIndex];
+//     setIsRephrasing(true);
+//     const currentQuestion = form.questions[currentQuestionIndex];
 
-    const context = conversationHistory
-      .map(
-        ({ question, answer }) => `Question: "${question}" Answer: "${answer}"`
-      )
-      .join("\n");
+//     const context = conversationHistory
+//       .map(
+//         ({ question, answer }) => `Question: "${question}" Answer: "${answer}"`
+//       )
+//       .join("\n");
 
-    try {
-      const { output } = await rephraseQuestion(
-        currentQuestion.questionText,
-        context
-      );
+//     try {
+//       const { output } = await rephraseQuestion(
+//         currentQuestion.questionText,
+//         context
+//       );
 
-      let rephrased = "";
-      for await (const delta of readStreamableValue(output)) {
-        rephrased += delta;
-        setStreamedQuestion(rephrased);
-      }
-      addRephrasedQuestion(rephrased);
-    } catch (error) {
-      console.error("Failed to rephrase question:", error);
-    } finally {
-      setIsRephrasing(false);
-    }
-  }, [form, currentQuestionIndex, conversationHistory, addRephrasedQuestion]);
+//       let rephrased = "";
+//       for await (const delta of readStreamableValue(output)) {
+//         rephrased += delta;
+//         setStreamedQuestion(rephrased);
+//       }
+//       addRephrasedQuestion(rephrased);
+//     } catch (error) {
+//       console.error("Failed to rephrase question:", error);
+//     } finally {
+//       setIsRephrasing(false);
+//     }
+//   }, [form, currentQuestionIndex, conversationHistory, addRephrasedQuestion]);
 
-  useEffect(() => {
-    if (!form || rephrasedQuestions[currentQuestionIndex]) return;
-    rephraseCurrentQuestion();
-  }, [form, currentQuestionIndex, rephraseCurrentQuestion, rephrasedQuestions]);
+//   useEffect(() => {
+//     if (!form || rephrasedQuestions[currentQuestionIndex]) return;
+//     rephraseCurrentQuestion();
+//   }, [form, currentQuestionIndex, rephraseCurrentQuestion, rephrasedQuestions]);
 
-  const router = useRouter();
+//   const router = useRouter();
 
-  const handleAnswer = () => {
-    if (!form) return;
+//   const handleAnswer = () => {
+//     if (!form) return;
 
-    const currentQuestion = form.questions[currentQuestionIndex];
+//     const currentQuestion = form.questions[currentQuestionIndex];
 
-    if (currentQuestion.required && !currentAnswer) {
-      toast.error("This question is required. Please provide an answer.");
-      return;
-    }
+//     if (currentQuestion.required && !currentAnswer) {
+//       toast.error("This question is required. Please provide an answer.");
+//       return;
+//     }
 
-    if (currentAnswer) {
-      saveAnswer({
-        questionId: currentQuestion.id,
-        answerText: currentAnswer,
-      });
-      updateConversationHistory(
-        rephrasedQuestions[currentQuestionIndex] ||
-          currentQuestion.questionText,
-        currentAnswer
-      );
-    }
+//     if (currentAnswer) {
+//       saveAnswer({
+//         questionId: currentQuestion.id,
+//         answerText: currentAnswer,
+//       });
+//       updateConversationHistory(
+//         rephrasedQuestions[currentQuestionIndex] ||
+//           currentQuestion.questionText,
+//         currentAnswer
+//       );
+//     }
 
-    setCurrentAnswer("");
-    if (currentQuestionIndex < form.questions.length - 1) {
-      moveToNextQuestion();
-    } else {
-      handleSubmit();
-      // Redirect to the thank you page
-      router.push("/thank-you");
-    }
-  };
+//     setCurrentAnswer("");
+//     if (currentQuestionIndex < form.questions.length - 1) {
+//       moveToNextQuestion();
+//     } else {
+//       handleSubmit();
+//       // Redirect to the thank you page
+//       router.push("/thank-you");
+//     }
+//   };
 
-  const handleSubmit = useCallback(async () => {
-    try {
-      await submitResponses();
-      toast.success("Thank you for completing the questionnaire!");
-      // Handle successful submission (e.g., redirect)
-    } catch (error) {
-      console.error("Failed to submit responses:", error);
-      toast.error("Failed to submit responses. Please try again.");
-    }
-  }, [submitResponses]);
+//   const handleSubmit = useCallback(async () => {
+//     try {
+//       await submitResponses();
+//       toast.success("Thank you for completing the questionnaire!");
+//       // Handle successful submission (e.g., redirect)
+//     } catch (error) {
+//       console.error("Failed to submit responses:", error);
+//       toast.error("Failed to submit responses. Please try again.");
+//     }
+//   }, [submitResponses]);
 
-  const handleSkip = useCallback(() => {
-    if (!form) return;
-    const currentQuestion = form.questions[currentQuestionIndex];
+//   const handleSkip = useCallback(() => {
+//     if (!form) return;
+//     const currentQuestion = form.questions[currentQuestionIndex];
 
-    // Save an empty answer for the skipped question
-    saveAnswer({
-      questionId: currentQuestion.id,
-      answerText: "",
-    });
-    // Update conversation history with skipped question
-    updateConversationHistory(
-      rephrasedQuestions[currentQuestionIndex] || currentQuestion.questionText,
-      "[Skipped]"
-    );
+//     // Save an empty answer for the skipped question
+//     saveAnswer({
+//       questionId: currentQuestion.id,
+//       answerText: "",
+//     });
+//     // Update conversation history with skipped question
+//     updateConversationHistory(
+//       rephrasedQuestions[currentQuestionIndex] || currentQuestion.questionText,
+//       "[Skipped]"
+//     );
 
-    setCurrentAnswer("");
-    if (currentQuestionIndex < form.questions.length - 1) {
-      moveToNextQuestion();
-    } else {
-      handleSubmit();
-    }
-  }, [
-    form,
-    currentQuestionIndex,
-    saveAnswer,
-    moveToNextQuestion,
-    updateConversationHistory,
-    rephrasedQuestions,
-    handleSubmit, // Add this to the dependency array
-  ]);
+//     setCurrentAnswer("");
+//     if (currentQuestionIndex < form.questions.length - 1) {
+//       moveToNextQuestion();
+//     } else {
+//       handleSubmit();
+//     }
+//   }, [
+//     form,
+//     currentQuestionIndex,
+//     saveAnswer,
+//     moveToNextQuestion,
+//     updateConversationHistory,
+//     rephrasedQuestions,
+//     handleSubmit, // Add this to the dependency array
+//   ]);
 
-  const fadeVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-  };
+//   const fadeVariants = {
+//     hidden: { opacity: 0 },
+//     visible: { opacity: 1 },
+//   };
 
-  const renderQuestionInput = () => {
-    if (!form) return null;
+//   const renderQuestionInput = () => {
+//     if (!form) return null;
 
-    const currentQuestion = form.questions[currentQuestionIndex];
+//     const currentQuestion = form.questions[currentQuestionIndex];
 
-    switch (currentQuestion.questionType) {
-      case "text":
-        return (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeVariants}
-            transition={{ duration: 0.5 }}
-          >
-            <Input
-              type="text"
-              placeholder="Type your answer here"
-              onChange={(e) => setCurrentAnswer(e.target.value)}
-              className="w-full border-t-0 border-r-0 border-l-0 rounded-r-none rounded-l-none "
-            />
-          </motion.div>
-        );
-      case "radio":
-        return (
-          <RadioGroup
-            onValueChange={(value) => setCurrentAnswer(value)}
-            className="grid grid-cols-1 gap-y-5  "
-          >
-            <AnimatePresence>
-              {currentQuestion.options?.map((option, index) => (
-                <motion.div
-                  key={option.id}
-                  initial="hidden"
-                  animate="visible"
-                  variants={fadeVariants}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="flex items-center space-x-2 mb-2  "
-                >
-                  <RadioGroupItem value={option.id} id={option.id} />
-                  <Label htmlFor={option.id} className="font-medium text-sm">
-                    {option.text}
-                  </Label>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </RadioGroup>
-        );
-      case "checkbox":
-        return (
-          <div>
-            <AnimatePresence>
-              {currentQuestion.options?.map((option, index) => (
-                <motion.div
-                  key={option.id}
-                  initial="hidden"
-                  animate="visible"
-                  variants={fadeVariants}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="flex items-center space-x-2 mb-2"
-                >
-                  <Checkbox
-                    id={option.id}
-                    onCheckedChange={(checked) => {
-                      if (checked) setCurrentAnswer(option.text);
-                    }}
-                  />
-                  <Label htmlFor={option.id}>{option.text}</Label>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        );
-      case "select":
-        return (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeVariants}
-            transition={{ duration: 0.5 }}
-          >
-            <Select onValueChange={(value) => setCurrentAnswer(value)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select an option" />
-              </SelectTrigger>
-              <SelectContent>
-                {currentQuestion.options?.map((option) => (
-                  <SelectItem key={option.id} value={option.id}>
-                    {option.text}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </motion.div>
-        );
-      case "date":
-        return (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeVariants}
-            transition={{ duration: 0.5 }}
-          >
-            <Input
-              type="date"
-              onChange={(e) => setCurrentAnswer(e.target.value)}
-              className="w-full"
-            />
-          </motion.div>
-        );
-      case "time":
-        return (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeVariants}
-            transition={{ duration: 0.5 }}
-          >
-            <Input
-              type="time"
-              onChange={(e) => setCurrentAnswer(e.target.value)}
-              className="w-full"
-            />
-          </motion.div>
-        );
-      default:
-        return null;
-    }
-  };
+//     switch (currentQuestion.questionType) {
+//       case "text":
+//         return (
+//           <motion.div
+//             initial="hidden"
+//             animate="visible"
+//             variants={fadeVariants}
+//             transition={{ duration: 0.5 }}
+//           >
+//             <Input
+//               type="text"
+//               placeholder="Type your answer here"
+//               onChange={(e) => setCurrentAnswer(e.target.value)}
+//               className="w-full border-t-0 border-r-0 border-l-0 rounded-r-none rounded-l-none "
+//             />
+//           </motion.div>
+//         );
+//       case "radio":
+//         return (
+//           <RadioGroup
+//             onValueChange={(value) => setCurrentAnswer(value)}
+//             className="grid grid-cols-1 gap-y-5  "
+//           >
+//             <AnimatePresence>
+//               {currentQuestion.options?.map((option, index) => (
+//                 <motion.div
+//                   key={option.id}
+//                   initial="hidden"
+//                   animate="visible"
+//                   variants={fadeVariants}
+//                   transition={{ duration: 0.5, delay: index * 0.1 }}
+//                   className="flex items-center space-x-2 mb-2  "
+//                 >
+//                   <RadioGroupItem value={option.id} id={option.id} />
+//                   <Label htmlFor={option.id} className="font-medium text-sm">
+//                     {option.text}
+//                   </Label>
+//                 </motion.div>
+//               ))}
+//             </AnimatePresence>
+//           </RadioGroup>
+//         );
+//       case "checkbox":
+//         return (
+//           <div>
+//             <AnimatePresence>
+//               {currentQuestion.options?.map((option, index) => (
+//                 <motion.div
+//                   key={option.id}
+//                   initial="hidden"
+//                   animate="visible"
+//                   variants={fadeVariants}
+//                   transition={{ duration: 0.5, delay: index * 0.1 }}
+//                   className="flex items-center space-x-2 mb-2"
+//                 >
+//                   <Checkbox
+//                     id={option.id}
+//                     onCheckedChange={(checked) => {
+//                       if (checked) setCurrentAnswer(option.text);
+//                     }}
+//                   />
+//                   <Label htmlFor={option.id}>{option.text}</Label>
+//                 </motion.div>
+//               ))}
+//             </AnimatePresence>
+//           </div>
+//         );
+//       case "select":
+//         return (
+//           <motion.div
+//             initial="hidden"
+//             animate="visible"
+//             variants={fadeVariants}
+//             transition={{ duration: 0.5 }}
+//           >
+//             <Select onValueChange={(value) => setCurrentAnswer(value)}>
+//               <SelectTrigger className="w-full">
+//                 <SelectValue placeholder="Select an option" />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 {currentQuestion.options?.map((option) => (
+//                   <SelectItem key={option.id} value={option.id}>
+//                     {option.text}
+//                   </SelectItem>
+//                 ))}
+//               </SelectContent>
+//             </Select>
+//           </motion.div>
+//         );
+//       case "date":
+//         return (
+//           <motion.div
+//             initial="hidden"
+//             animate="visible"
+//             variants={fadeVariants}
+//             transition={{ duration: 0.5 }}
+//           >
+//             <Input
+//               type="date"
+//               onChange={(e) => setCurrentAnswer(e.target.value)}
+//               className="w-full"
+//             />
+//           </motion.div>
+//         );
+//       case "time":
+//         return (
+//           <motion.div
+//             initial="hidden"
+//             animate="visible"
+//             variants={fadeVariants}
+//             transition={{ duration: 0.5 }}
+//           >
+//             <Input
+//               type="time"
+//               onChange={(e) => setCurrentAnswer(e.target.value)}
+//               className="w-full"
+//             />
+//           </motion.div>
+//         );
+//       default:
+//         return null;
+//     }
+//   };
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (streamedQuestion) {
-      timer = setInterval(() => {
-        setVisibleChars((prev) => {
-          if (prev < streamedQuestion.length) {
-            return prev + 1;
-          }
-          clearInterval(timer);
-          return prev;
-        });
-      }, 30); // Adjust this value to control the typing speed
-    }
-    return () => clearInterval(timer);
-  }, [streamedQuestion]);
+//   useEffect(() => {
+//     let timer: NodeJS.Timeout;
+//     if (streamedQuestion) {
+//       timer = setInterval(() => {
+//         setVisibleChars((prev) => {
+//           if (prev < streamedQuestion.length) {
+//             return prev + 1;
+//           }
+//           clearInterval(timer);
+//           return prev;
+//         });
+//       }, 30); // Adjust this value to control the typing speed
+//     }
+//     return () => clearInterval(timer);
+//   }, [streamedQuestion]);
 
-  if (!form || isLoading) {
-    return <div>Loading...</div>;
-  }
+//   if (!form || isLoading) {
+//     return <div>Loading...</div>;
+//   }
 
-  return (
-    <div className="min-h-screen flex flex-col p-6 w-full font-sans">
-      <div className="w-full flex text-left flex-col p-5 md:px-12">
-        <h2 className="text-3xl font-bold mb-2">{form.title}</h2>
-        <p className="text-lg mb-12">{form.description}</p>
-      </div>
-      <div className="flex-1 flex justify-center mt-20  px-5">
-        {currentQuestionIndex < form.questions.length ? (
-          <div className="flex flex-col items-center w-full max-w-2xl ">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentQuestionIndex}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                variants={fadeVariants}
-                transition={{ duration: 0.5 }}
-                className="mb-6 w-full flex flex-col gap-y-4"
-              >
-                <h3 className="text-2xl font-semibold mb-4 text-start pb-2">
-                  {streamedQuestion ? (
-                    streamedQuestion.split("").map((char, index) => (
-                      <motion.span
-                        key={index}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: index < visibleChars ? 1 : 0 }}
-                        transition={{ duration: 0.1 }}
-                      >
-                        {char}
-                      </motion.span>
-                    ))
-                  ) : (
-                    <div className="h-5 w-2 animate-pulse bg-black"></div>
-                  )}
-                </h3>
-                {!isRephrasing && streamedQuestion && renderQuestionInput()}
-              </motion.div>
-            </AnimatePresence>
-            <div className="w-full flex justify-end mt-6">
-              <motion.button
-                className="rounded-full bg-black p-3 text-white hover:bg-transparent hover:border hover:border-black hover:text-black transition-all duration-300"
-                onClick={handleAnswer}
-                disabled={isRephrasing || !streamedQuestion}
-              >
-                <ArrowRight size={24} />
-              </motion.button>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center">
-            <h3 className="text-2xl font-semibold mb-4">
-              Thank you for completing the questionnaire!
-            </h3>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+//   return (
+//     <div className="min-h-screen flex flex-col p-6 w-full font-sans">
+//       <div className="w-full flex text-left flex-col p-5 md:px-12">
+//         <h2 className="text-3xl font-bold mb-2">{form.title}</h2>
+//         <p className="text-lg mb-12">{form.description}</p>
+//       </div>
+//       <div className="flex-1 flex justify-center mt-20  px-5">
+//         {currentQuestionIndex < form.questions.length ? (
+//           <div className="flex flex-col items-center w-full max-w-2xl ">
+//             <AnimatePresence mode="wait">
+//               <motion.div
+//                 key={currentQuestionIndex}
+//                 initial="hidden"
+//                 animate="visible"
+//                 exit="hidden"
+//                 variants={fadeVariants}
+//                 transition={{ duration: 0.5 }}
+//                 className="mb-6 w-full flex flex-col gap-y-4"
+//               >
+//                 <h3 className="text-2xl font-semibold mb-4 text-start pb-2">
+//                   {streamedQuestion ? (
+//                     streamedQuestion.split("").map((char, index) => (
+//                       <motion.span
+//                         key={index}
+//                         initial={{ opacity: 0 }}
+//                         animate={{ opacity: index < visibleChars ? 1 : 0 }}
+//                         transition={{ duration: 0.1 }}
+//                       >
+//                         {char}
+//                       </motion.span>
+//                     ))
+//                   ) : (
+//                     <div className="h-5 w-2 animate-pulse bg-black"></div>
+//                   )}
+//                 </h3>
+//                 {!isRephrasing && streamedQuestion && renderQuestionInput()}
+//               </motion.div>
+//             </AnimatePresence>
+//             <div className="w-full flex justify-end mt-6">
+//               <motion.button
+//                 className="rounded-full bg-black p-3 text-white hover:bg-transparent hover:border hover:border-black hover:text-black transition-all duration-300"
+//                 onClick={handleAnswer}
+//                 disabled={isRephrasing || !streamedQuestion}
+//               >
+//                 <ArrowRight size={24} />
+//               </motion.button>
+//             </div>
+//           </div>
+//         ) : (
+//           <div className="text-center">
+//             <h3 className="text-2xl font-semibold mb-4">
+//               Thank you for completing the questionnaire!
+//             </h3>
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
 
-export default ResponseForm;
+// export default ResponseForm;

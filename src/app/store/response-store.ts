@@ -1,119 +1,118 @@
-import { create } from "zustand";
-import { FormType, QuestionType, NewAnswerType } from "@/db/schema";
-import {
-  initializeResponse,
-  saveAnswerToDatabase,
-  submitResponses,
-} from "@/app/actions";
+// import { create } from "zustand";
+// import { FormType, QuestionType, NewAnswerType } from "@/db/schema";
+// import {
+//   saveAnswerToDatabase,
+//   submitResponses,
+// } from "@/app/actions";
 
-interface ResponseState {
-  form: (Omit<FormType, "userId"> & { questions: QuestionType[] }) | null;
-  currentQuestionIndex: number;
-  rephrasedQuestions: string[];
-  answers: NewAnswerType[];
-  isLoading: boolean;
-  conversation: { role: string; content: string }[];
-  responseId: string | null;
-  conversationHistory: { question: string; answer: string }[];
+// interface ResponseState {
+//   form: (Omit<FormType, "userId"> & { questions: QuestionType[] }) | null;
+//   currentQuestionIndex: number;
+//   rephrasedQuestions: string[];
+//   answers: NewAnswerType[];
+//   isLoading: boolean;
+//   conversation: { role: string; content: string }[];
+//   responseId: string | null;
+//   conversationHistory: { question: string; answer: string }[];
 
-  setForm: (
-    form: Omit<FormType, "userId"> & { questions: QuestionType[] }
-  ) => void;
-  initializeResponse: () => Promise<void>;
-  addRephrasedQuestion: (rephrased: string) => void;
-  saveAnswer: (answer: Omit<NewAnswerType, "responseId">) => Promise<void>;
-  moveToNextQuestion: () => void;
-  submitResponses: () => Promise<void>;
-  addToConversation: (role: string, content: string) => void;
-  updateConversationHistory: (question: string, answer: string) => void;
-}
+//   setForm: (
+//     form: Omit<FormType, "userId"> & { questions: QuestionType[] }
+//   ) => void;
+//   initializeResponse: () => Promise<void>;
+//   addRephrasedQuestion: (rephrased: string) => void;
+//   saveAnswer: (answer: Omit<NewAnswerType, "responseId">) => Promise<void>;
+//   moveToNextQuestion: () => void;
+//   submitResponses: () => Promise<void>;
+//   addToConversation: (role: string, content: string) => void;
+//   updateConversationHistory: (question: string, answer: string) => void;
+// }
 
-export const useResponseStore = create<ResponseState>((set, get) => ({
-  form: null,
-  currentQuestionIndex: 0,
-  rephrasedQuestions: [],
-  answers: [],
-  isLoading: false,
-  conversation: [],
-  responseId: null,
-  conversationHistory: [],
+// export const useResponseStore = create<ResponseState>((set, get) => ({
+//   form: null,
+//   currentQuestionIndex: 0,
+//   rephrasedQuestions: [],
+//   answers: [],
+//   isLoading: false,
+//   conversation: [],
+//   responseId: null,
+//   conversationHistory: [],
 
-  setForm: (form) => set({ form }),
+//   setForm: (form) => set({ form }),
 
-  initializeResponse: async () => {
-    const { form } = get();
-    if (!form) return;
+//   initializeResponse: async () => {
+//     const { form } = get();
+//     if (!form) return;
 
-    try {
-      const { responseId } = await initializeResponse(form.id);
-      set({ responseId });
-    } catch (error) {
-      console.error("Failed to initialize response:", error);
-    }
-  },
+//     try {
+//       const { responseId } = await initializeResponse(form.id);
+//       set({ responseId });
+//     } catch (error) {
+//       console.error("Failed to initialize response:", error);
+//     }
+//   },
 
-  addRephrasedQuestion: (rephrased: string) => {
-    set((state) => ({
-      rephrasedQuestions: [
-        ...state.rephrasedQuestions.slice(0, state.currentQuestionIndex),
-        rephrased,
-        ...state.rephrasedQuestions.slice(state.currentQuestionIndex + 1),
-      ],
-    }));
-    get().addToConversation("assistant", rephrased);
-  },
+//   addRephrasedQuestion: (rephrased: string) => {
+//     set((state) => ({
+//       rephrasedQuestions: [
+//         ...state.rephrasedQuestions.slice(0, state.currentQuestionIndex),
+//         rephrased,
+//         ...state.rephrasedQuestions.slice(state.currentQuestionIndex + 1),
+//       ],
+//     }));
+//     get().addToConversation("assistant", rephrased);
+//   },
 
-  saveAnswer: async (answer) => {
-    const { responseId, form, currentQuestionIndex, rephrasedQuestions } =
-      get();
-    if (!responseId || !form) {
-      console.error("No response ID or form available");
-      return;
-    }
-    const newAnswer: NewAnswerType = { ...answer, responseId };
-    try {
-      await saveAnswerToDatabase(newAnswer); // Call to external function
-      set((state) => ({
-        answers: [...state.answers, newAnswer],
-      }));
-      get().addToConversation("user", answer.answerText || "");
+//   saveAnswer: async (answer) => {
+//     const { responseId, form, currentQuestionIndex, rephrasedQuestions } =
+//       get();
+//     if (!responseId || !form) {
+//       console.error("No response ID or form available");
+//       return;
+//     }
+//     const newAnswer: NewAnswerType = { ...answer, responseId };
+//     try {
+//       await saveAnswerToDatabase(newAnswer); // Call to external function
+//       set((state) => ({
+//         answers: [...state.answers, newAnswer],
+//       }));
+//       get().addToConversation("user", answer.answerText || "");
 
-      // Update conversation history
-      const currentQuestion =
-        rephrasedQuestions[currentQuestionIndex] ||
-        form.questions[currentQuestionIndex].questionText;
-      get().updateConversationHistory(currentQuestion, answer.answerText || "");
-    } catch (error) {
-      console.error("Failed to save answer:", error);
-    }
-  },
+//       // Update conversation history
+//       const currentQuestion =
+//         rephrasedQuestions[currentQuestionIndex] ||
+//         form.questions[currentQuestionIndex].questionText;
+//       get().updateConversationHistory(currentQuestion, answer.answerText || "");
+//     } catch (error) {
+//       console.error("Failed to save answer:", error);
+//     }
+//   },
 
-  moveToNextQuestion: () => {
-    set((state) => ({ currentQuestionIndex: state.currentQuestionIndex + 1 }));
-  },
+//   moveToNextQuestion: () => {
+//     set((state) => ({ currentQuestionIndex: state.currentQuestionIndex + 1 }));
+//   },
 
-  submitResponses: async () => {
-    const { responseId, answers } = get();
-    if (!responseId) return;
+//   submitResponses: async () => {
+//     const { responseId, answers } = get();
+//     if (!responseId) return;
 
-    try {
-      await submitResponses(responseId, answers);
-      // Handle successful submission (e.g., show a success message, redirect)
-    } catch (error) {
-      console.error("Failed to submit responses:", error);
-      // Handle error (e.g., show error message to user)
-    }
-  },
+//     try {
+//       await submitResponses(responseId, answers);
+//       // Handle successful submission (e.g., show a success message, redirect)
+//     } catch (error) {
+//       console.error("Failed to submit responses:", error);
+//       // Handle error (e.g., show error message to user)
+//     }
+//   },
 
-  addToConversation: (role, content) => {
-    set((state) => ({
-      conversation: [...state.conversation, { role, content }],
-    }));
-  },
+//   addToConversation: (role, content) => {
+//     set((state) => ({
+//       conversation: [...state.conversation, { role, content }],
+//     }));
+//   },
 
-  updateConversationHistory: (question: string, answer: string) => {
-    set((state) => ({
-      conversationHistory: [...state.conversationHistory, { question, answer }],
-    }));
-  },
-}));
+//   updateConversationHistory: (question: string, answer: string) => {
+//     set((state) => ({
+//       conversationHistory: [...state.conversationHistory, { question, answer }],
+//     }));
+//   },
+// }));

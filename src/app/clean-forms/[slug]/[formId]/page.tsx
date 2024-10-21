@@ -1,6 +1,5 @@
 import { getFormById, getPublicFormById } from "@/app/actions";
 import React from "react";
-import ResponseForm from "./_components/response-form";
 import NewResponseForm from "./_components/new-response-form";
 
 const FormView = async ({
@@ -17,7 +16,6 @@ const FormView = async ({
         background: `${formData.backgroundColor}`,
       }}
     >
-      {/* <ResponseForm formData={formData} /> */}
       <NewResponseForm formData={formData} />
     </div>
   );
