@@ -397,7 +397,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
                 <Button
                   onClick={handleSaveAnswer}
                   size="icon"
-                  className="rounded-full w-12 h-12 transition-all duration-300 bg-primary hover:scale-110  "
+                  className="rounded-full w-12 h-12 transition-all duration-300 bg-primary hover:scale-110"
                   aria-label="Next Question"
                 >
                   <ArrowRight className="w-6 h-6" />
