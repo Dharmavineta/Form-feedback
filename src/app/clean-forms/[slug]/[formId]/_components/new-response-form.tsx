@@ -38,6 +38,8 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
     llmContext,
     setLlmContext,
     setFormMetadata,
+    formTitle,
+    formDescription,
   } = useResponseStore();
 
   useEffect(() => {
@@ -48,11 +50,12 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   // Handle intro message
   useEffect(() => {
     if (currentQuestionIndex === null) {
+      const context = `Form Title: ${formData.title}\nForm Description: ${formData.description}`;
       const streamIntro = async () => {
         try {
           setShowOptions(false);
           setIsStreamComplete(false);
-          const { output } = await generateFormMessage("intro");
+          const { output } = await generateFormMessage("intro", context);
           let accumulatedText = "";
           for await (const delta of readStreamableValue(output)) {
             accumulatedText += delta;
@@ -103,11 +106,12 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
   // Handle outro message
   useEffect(() => {
     if (currentQuestionIndex === formQuestions.length) {
+      const context = `Form Title: ${formTitle}\nForm Description: ${formDescription}`;
       const streamOutro = async () => {
         try {
           setShowOptions(false);
           setIsStreamComplete(false);
-          const { output } = await generateFormMessage("outro");
+          const { output } = await generateFormMessage("outro", context);
           let accumulatedText = "";
           for await (const delta of readStreamableValue(output)) {
             accumulatedText += delta;
@@ -121,7 +125,7 @@ const NewResponseForm: FC<{ formData: FormDataType }> = ({ formData }) => {
       };
       streamOutro();
     }
-  }, [currentQuestionIndex, formQuestions.length]);
+  }, [currentQuestionIndex, formQuestions.length, formDescription, formTitle]);
 
   const handleCheckboxChange = (optionId: string, checked: boolean) => {
     setSelectedCheckboxes((prev) => {

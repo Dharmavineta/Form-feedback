@@ -527,21 +527,17 @@ export async function generateAIObject(input: string) {
 
 type MessageType = "intro" | "outro";
 
-export async function generateFormMessage(type: MessageType) {
+export async function generateFormMessage(type: MessageType, context: string) {
   const stream = createStreamableValue("");
 
   const prompts = {
-    intro: `Create a warm, welcoming introduction for an interactive form. The message should:
-- Be brief but friendly (2-3 sentences maximum)
-- Welcome the user and set a positive tone
-- Mention that this is an interactive conversation
-- Avoid repetitive phrases or redundant information`,
+    intro: `Using the context provided below, generate a welcoming and engaging introduction for the user. The intro should encourage the user to begin the form-filling process by emphasizing the purpose of the form and making them feel comfortable and motivated to proceed. Keep the tone friendly and clear, with a balance of professionalism and approachability.
 
-    outro: `Create a brief closing message for an interactive form. The message should:
-- Thank the user for their time (1-2 sentences)
-- Confirm their responses have been recorded
-- End on a positive note
-Keep it concise and avoid repetition.`,
+Context: ${context}`,
+
+    outro: `Using the context provided below, create a warm and dynamic closing note. Acknowledge the user's participation by referencing the form's title and description, and respond to their last answer briefly. Then, conclude with a polite and interactive thank-you, ensuring the user feels appreciated for their input.
+
+Context: ${context}`,
   };
 
   (async () => {
