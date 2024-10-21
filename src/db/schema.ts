@@ -65,7 +65,6 @@ export const formsRelations = relations(forms, ({ one, many }) => ({
     references: [users.id],
   }),
   questions: many(questions),
-  sessions: many(sessions),
   responses: many(responses),
   formViews: many(formViews),
   dailyStats: many(dailyStats),
@@ -93,29 +92,6 @@ export const questionsRelations = relations(questions, ({ one, many }) => ({
   }),
   answers: many(answers),
   interactions: many(questionInteraction),
-}));
-
-// Sessions table
-export const sessions = pgTable("sessions", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  sessionToken: uuid("session_token").defaultRandom().notNull().unique(),
-  formId: uuid("form_id")
-    .references(() => forms.id)
-    .notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  startedAt: timestamp("started_at").defaultNow(),
-  completedAt: timestamp("completed_at"),
-  totalTimeSpent: integer("total_time_spent").default(0),
-});
-
-export const sessionsRelations = relations(sessions, ({ one, many }) => ({
-  form: one(forms, {
-    fields: [sessions.formId],
-    references: [forms.id],
-  }),
-  responses: many(responses),
-  formViews: many(formViews),
-  questionInteractions: many(questionInteraction),
 }));
 
 // Responses table (simplified)
@@ -245,9 +221,6 @@ export type NewFormType = typeof forms.$inferInsert;
 
 export type QuestionType = typeof questions.$inferSelect;
 export type NewQuestionType = typeof questions.$inferInsert;
-
-export type SessionType = typeof sessions.$inferSelect;
-export type NewSessionType = typeof sessions.$inferInsert;
 
 export type ResponseType = typeof responses.$inferSelect;
 export type NewResponseType = typeof responses.$inferInsert;
